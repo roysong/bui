@@ -53,14 +53,14 @@ define('bui/toolbar/breadcrumb',['bui/common','bui/list/domlist'],function(requi
    * </code></pre>
 	 * ## 显示动态数据源的数据
    * <pre><code>
-	 *<div id="form">
-	 *</div>
-	 *<div>
-	 *	<button id="addDic">增加一级目录</button>
-	 *	<button id="deleteDic">删除一级目录</button>
-	 *	<button id="resetDic">重置目录</button>
-	 *</div>
-	 *<script type="text/javascript">
+	 *&lt;div id="form"&gt;
+	 *&lt;/div&gt;
+	 *&lt;div&gt;
+	 *	&lt;button id="addDic"&gt;增加一级目录&lt;/button&gt;
+	 *	&lt;button id="deleteDic"&gt;删除一级目录&lt;/button&gt;
+	 *	&lt;button id="resetDic"&gt;重置目录&lt;/button&gt;
+	 *&lt;/div&gt;
+	 *&lt;script type="text/javascript"&gt;
 	 *	BUI.use(['bui/toolbar/breadcrumb','bui/data'],function(Breadcrumb,Data){
 	 *		var defaultDicData = {id : '-3954',name : '主目录'};
 	 *		var store = new Data.Store({
@@ -82,15 +82,36 @@ define('bui/toolbar/breadcrumb',['bui/common','bui/list/domlist'],function(requi
 	 *		$('#resetDic').click(function(){
 	 *			store.setResult([defaultDicData]);	
 	 *		})
+	 *		bc.on('jumpToDirectory',function(e){
+	 *			console.log(e.dic)
+	 *		})
 	 *	});
-	 *</script>
+	 *&lt;/script&gt;
    * </code></pre>
    * @class BUI.Toolbar.Breadcrumb
    * @extends BUI.Component.Controller
-   * @mixins BUI.Component.UIBase.ChildList
+   * @mixins BUI.Component.UIBase.Bindable BUI.List.DomList
    */
 	var Breadcrumb = Component.Controller.extend([UIBase.Bindable,DomList],	
 	{
+		bindUI : function(){
+			var _self = this,
+				store = _self.get('store');
+				_self.on('itemclick',function(e){
+					var item = e.item,
+						itemIdx = _self.indexOfItem(item);
+					// 点击某个子项时，干掉此子项以后的所有子项	
+					if((itemIdx + 1) < store.getCount()){//当点击的子项不是最后一项时，才执行干掉后面子项的操作
+						var	records = store.getResult(),
+							newRecords = records.slice(0,itemIdx + 1);
+						store.setResult(newRecords);
+					}
+					// 抛出自定义事件
+					_self.fire("jumpToDirectory",{					
+						dic : item
+					});
+				});
+		},
 		/**
 		* 添加
   	* @protected
@@ -127,11 +148,23 @@ define('bui/toolbar/breadcrumb',['bui/common','bui/list/domlist'],function(requi
 	},{
 		ATTRS:
 		{
+			events : {
+				value : {
+					/**点击面包屑中某子项，其后子项全部消失，并抛出此事件
+           * @event
+           * @name BUI.Toolbar.Breadcrumb#jumpToDirectory
+           * @param {Object} e 点击事件
+           * @param {Object} e.dic store中的单项数据
+           */
+          'jumpToDirectory' : true
+				}
+			},
 			/**
        * 排序的时候是否直接进行DOM的排序，不重新生成DOM，<br>
        * 在可展开的表格插件，TreeGrid等控件中不要使用此属性
        * @type {Boolean}
        * cfg {Boolean} frontSortable
+       * @ignore
        */
       frontSortable : {
         value : false
@@ -148,6 +181,7 @@ define('bui/toolbar/breadcrumb',['bui/common','bui/list/domlist'],function(requi
        * 选项集合
        * @protected
        * @type {Array}
+       * @cfg {Object} [items='[]']
        */
       items : {
         view:true,
@@ -163,7 +197,7 @@ define('bui/toolbar/breadcrumb',['bui/common','bui/list/domlist'],function(requi
        * });
        * breadcrumb.render();
        * </code></pre>
-       * @cfg {Object} [itemCl='list-item']
+       * @cfg {Object} [itemCls='breadcrumb-item']
        */
       itemCls : {
         view:true,
