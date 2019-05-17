@@ -27,6 +27,9 @@
 			<path path="panel.js"/>
 			<path path="calendar.js"/>
 			<path path="datepicker.js"/>
+			<path path="clearctl.js"/>
+			<path path="datepickerclear.js"/>
+			<path path="monthpickerclear.js"/>
 		</concat>
     </target>
 
