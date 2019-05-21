@@ -12,7 +12,8 @@ define('bui/toolbar',['bui/common','bui/toolbar/baritem','bui/toolbar/breadcrumb
     Bar : require('bui/toolbar/bar'),
     Breadcrumb : require('bui/toolbar/breadcrumb'),
     PagingBar : require('bui/toolbar/pagingbar'),
-    NumberPagingBar : require('bui/toolbar/numberpagingbar')
+    NumberPagingBar : require('bui/toolbar/numberpagingbar'),
+    Steps : require('bui/toolbar/steps')
   });
   return Toolbar;
 });

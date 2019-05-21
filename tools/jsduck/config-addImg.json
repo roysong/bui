@@ -1,0 +1,25 @@
+{
+"--output":"../../docs",
+"--title":"BUI docs",
+"--external":"window,HTMLDocument,HTMLElement,DocumentFragment,XMLHttpRequest,jQuery",
+"--images":"./images",
+"--":[
+    "../../src/common",
+	"../../src/bar",
+	"../../src/data",
+	"../../src/cookie",
+	"../../src/overlay",
+	"../../src/mask",
+	"../../src/calendar",
+	"../../src/list",
+	"../../src/menu",
+	"../../src/form",
+	"../../src/select",
+	"../../src/tab",
+	"../../src/grid",
+	"../../src/editor",
+	"../../src/progressbar",
+	"../../src/module",
+	"../../src/uploader"
+    ]
+}
