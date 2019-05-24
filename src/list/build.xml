@@ -28,6 +28,10 @@
 			<path path="listbox.js"/>
 			<path path="listitem.js"/>
 			<path path="list.js"/>
+			<path path="archorField.js"/>
+			<path path="archorGroup.js"/>
+			<path path="fieldGroup.js"/>
+			<path path="fieldItem.js"/>
 		</concat>
   </target>
   

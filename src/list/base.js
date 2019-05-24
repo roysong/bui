@@ -4,7 +4,7 @@
  */
 ;(function(){
 var BASE = 'bui/list/';
-define('bui/list',['bui/common',BASE + 'list',BASE + 'listitem',BASE + 'simplelist',BASE + 'listbox'],function (r) {
+define('bui/list',['bui/common',BASE + 'list',BASE + 'listitem',BASE + 'archorField',BASE + 'simplelist',BASE + 'listbox'],function (r) {
   var BUI = r('bui/common'),
     List = BUI.namespace('List');
 
@@ -12,6 +12,8 @@ define('bui/list',['bui/common',BASE + 'list',BASE + 'listitem',BASE + 'simpleli
     List : r(BASE + 'list'),
     ListItem : r(BASE + 'listitem'),
     SimpleList : r(BASE + 'simplelist'),
+    DomList : r(BASE + 'domlist'),
+    ArchorField : r(BASE + 'archorField'),
     Listbox : r(BASE + 'listbox')
   });
 
