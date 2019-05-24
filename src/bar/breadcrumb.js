@@ -170,7 +170,6 @@ define('bui/toolbar/breadcrumb',['bui/common','bui/list'],function(require){
        * 选项集合
        * @protected
        * @type {Array}
-       * @cfg {Object} [items='[]']
        */
       items : {
         view:true,
