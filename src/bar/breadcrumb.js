@@ -2,13 +2,13 @@
  * @fileOverview 面包屑组件
  * @author roysong
  */
-define('bui/toolbar/breadcrumb',['bui/common','bui/list/domlist'],function(require){
+define('bui/toolbar/breadcrumb',['bui/common','bui/list'],function(require){
 
 	var BUI = require('bui/common'),
 		UIBase = BUI.Component.UIBase,
 		Component = BUI.Component,
 		UIBase = Component.UIBase,
-		DomList = require('bui/list/domlist'),
+		DomList = require('bui/list').DomList,
 		CLS_ITEM = BUI.prefix + 'breadcrumb-item';
 		
 	/**
@@ -40,17 +40,6 @@ define('bui/toolbar/breadcrumb',['bui/common','bui/list/domlist'],function(requi
 	/**
 	 * 面包屑
    * xclass : 'breadcrumb'
-	 * ## 显示静态数组的数据
-   * <pre><code>
-   *   BUI.use('bui/toolbar',function(Toolbar){
-   *     var breadcrumb = new Toolbar.Breadcrumb({
-   *       items : [{id : '-1',name : '首页'},{id : '0',name : '一级页面'},{id : '1',name : '二级页面'}],
-   *       render : '#b1'
-   *     });
-   *
-   *     breadcrumb.render();
-   *   });
-   * </code></pre>
 	 * ## 显示动态数据源的数据
    * <pre><code>
 	 *&lt;div id="form"&gt;
@@ -181,7 +170,6 @@ define('bui/toolbar/breadcrumb',['bui/common','bui/list/domlist'],function(requi
        * 选项集合
        * @protected
        * @type {Array}
-       * @cfg {Object} [items='[]']
        */
       items : {
         view:true,
@@ -239,7 +227,7 @@ define('bui/toolbar/breadcrumb',['bui/common','bui/list/domlist'],function(requi
         value : '<li class="' + CLS_ITEM + '"><a href="#">{name}</a> <span class="divider">/</span></li>'
 			},
 			tpl : {
-        value:'<ul class="breadcrumb"></ul>'
+        value:'<ul class="breadcrumb" style="margin:0;"></ul>'
       },
 			/**
 			* @private
