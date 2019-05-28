@@ -110,6 +110,7 @@ define('bui/calendar/monthpickerclear',['bui/common','bui/calendar/monthpicker',
 		      },
 			/**
 			 * 设置对齐属性
+			 * 对齐配置，详细说明请参看： <a href="http://www.cnblogs.com/zaohe/archive/2013/04/09/3010651.html">JS控件 对齐</a>
 			 * @type {Object}
 			 * @field
 			 * <code>

@@ -31,17 +31,14 @@ define('bui/calendar/clearctl',['bui/common'],function(require){
   var Clearctl = Component.Controller.extend([UIBase.Position,UIBase.Align],{
 	  initializer : function(){
 		  var _self = this;
+		  var uid = BUI.guid('clearctl');
+		  _self.set('id',uid);
 		  _self.set('align',{
 			  node: _self.get('referNode'),
-			  points : ['tr', 'tl'],
-			  offset: [-26, 3]
+			  points : ['cr', 'cr'],
+			  offset: [-1, 0]
 		  });
-	  },
-	  renderUI : function(){
-		  var _self = this;
-		  _self.set('elStyle',{
-			  'z-index' : $(_self.get('referNode')).css('z-index')+5
-		  });
+		  _self.set('zIndex',$(_self.get('referNode')).css('z-index')+1);
 	  },
 	  bindUI : function(){
 		  var _self = this,referNode=_self.get('referNode');
