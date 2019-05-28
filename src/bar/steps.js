@@ -41,7 +41,7 @@ define('bui/toolbar/steps', [
             var setps = new Toolbar.Steps({
                  items:[
                     {title:'步骤1',description:'步骤1详情',status:'error'},
-                    {title:'步骤2',description:'<p>步骤2详情</p><p style="color:red;">步骤2详情</p><p>步骤2详情</p>',status:'finish'},
+                    {title:'步骤2',description:'&lt;p&gt;步骤2详情&lt;/p&gt;&lt;p style="color:red;"&gt;步骤2详情&lt;/p&gt;&lt;p&gt;步骤2详情&lt;/p&gt;',status:'finish'},
                     {title:'步骤3',description:'步骤3详情',status:'process'},
                     {title:'步骤4',description:'步骤4详情',status:'wait'},
                 ]
