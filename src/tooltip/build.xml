@@ -23,6 +23,7 @@
 			<path path="base.js"/>
 			<path path="tip.js"/>
 			<path path="tips.js"/>
+			<path path="badge.js"/>
 		</concat>
   </target>
 
