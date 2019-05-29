@@ -20,7 +20,7 @@ gulp.task('less', function(){
     .pipe(gulp.dest('./'));
 });
 
-gulp.task('minify-css',['less'], function() {
+gulp.task('minify-css',function() {
   return gulp.src('./*.css')
     .pipe(minifyCSS())
     .pipe(rename({suffix: '-min'}))
@@ -31,11 +31,9 @@ gulp.task('watch', function(){
   gulp.watch('./**/*.less', ['less']);
 });
 
-gulp.task('copy', function(){
-  gulp.src('./*.css')
+gulp.task('copy', async() => {
+  await gulp.src('./*.css')
     .pipe(gulp.dest('../../../build/css/bs3/'));
-})
+});
 
-gulp.task('default',['prepare'], function(){
-  gulp.start('less', 'copy');
-})
+gulp.task('default',gulp.series('prepare','less','minify-css','copy'));
