@@ -30,9 +30,12 @@ define('bui/calendar/datepickerclear',['bui/common','bui/calendar/datepicker','b
 	    	var _self = this;
 	    	var trigger = _self.get('trigger');
 	    	$(trigger).each(function (i,domEl){
-	    		new Clearctl({
+	    		var clr = new Clearctl({
 	    			referNode : domEl
-	    		}).show()
+          }).show();
+          clr.on('clearClick',function(e){
+            _self.fire('clearClick',{node : $(domEl)});
+          });
     		});
 	    },
    },{

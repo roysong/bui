@@ -44,6 +44,7 @@ define('bui/calendar/clearctl',['bui/common'],function(require){
 		  var _self = this,referNode=_self.get('referNode');
 		  _self.on('click',function(){
 			  $(referNode).val('');
+			  _self.fire('clearClick');
 		  })
 	  }
   },{
@@ -76,7 +77,19 @@ define('bui/calendar/clearctl',['bui/common'],function(require){
     	 * @type {String}
     	 * @ignore
     	 */
-    	content : {value : '×'},
+		content : {value : '×'},
+		events:{
+			value:{
+			   /**
+				* 点击清除按钮事件
+			   * @event
+			   * @name BUI.Calendar.Clearctl#clearClick
+			   * @param {Object} e 点击事件
+			   * @param {jQuery} e.node
+			   */
+			  'clearClick' : true,
+			}
+		},
         xview : {
             value : ClearctlView
         },
