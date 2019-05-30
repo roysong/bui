@@ -3,13 +3,14 @@
  * @ignore
  */
 
-define('bui/overlay',['bui/common','bui/overlay/overlay','bui/overlay/dialog','bui/overlay/message'],function (require) {
+define('bui/overlay',['bui/common','bui/overlay/overlay','bui/overlay/dialog','bui/overlay/message','bui/overlay/messageList'],function (require) {
   var BUI = require('bui/common'),
     Overlay = BUI.namespace('Overlay');
 
   BUI.mix(Overlay,{
     Overlay : require('bui/overlay/overlay'),
     Dialog : require('bui/overlay/dialog'),
+    MessageList : require('bui/overlay/messageList'),
     Message : require('bui/overlay/message')
   });
 
@@ -19,6 +20,7 @@ define('bui/overlay',['bui/common','bui/overlay/overlay','bui/overlay/dialog','b
   });
 
   BUI.Message = BUI.Overlay.Message;
+  BUI.Msg = BUI.Overlay.MessageList;
   return Overlay;
 
 });

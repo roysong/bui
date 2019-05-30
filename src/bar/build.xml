@@ -23,6 +23,8 @@
 			<path path="base.js"/>
 			<path path="baritem.js"/>
 			<path path="bar.js"/>
+			<path path="breadcrumb.js"/>
+			<path path="steps.js"/>
 			<path path="pagingbar.js"/>
 			<path path="numberpagingbar.js"/>
 		</concat>

@@ -1,0 +1,25 @@
+﻿.messageBox{
+	position: absolute;/*这里一定要设置*/
+	top:4px;
+	z-index: 1080;/*这里是该元素与显示屏的距离，据说越大越好，因为没有它也是可以的*/
+	margin-left: 42%;
+	max-width: 20%;
+    min-width: 12%;
+}
+.messageBox .bui-list-item{
+	padding-top:17px;
+}
+.MessageList{
+	text-align:center;
+	-webkit-transition: .5s ease-in-out;/* css的transition允许css的属性值在一定的时间内从一个状态平滑的过渡到另一个状态 */
+	-moz-transition: .5s ease-in-out;/*这里为了兼容其他浏览器*/
+	-o-transition: .5s ease-in-out;
+	padding-top:7px;
+	padding-left:10px;
+	padding-bottom:6px;
+	padding-right:15px;
+	
+	box-shadow:-3px 3px 10px 5px #e9ebf7;
+    border-color: white;
+    background-color: white;
+}

@@ -24,6 +24,7 @@
 			<path path="overlay.js"/>
 			<path path="dialog.js"/>
 			<path path="message.js"/>
+            <path path="messageList.js"/>
 		</concat>
   </target>
 
