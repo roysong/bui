@@ -6,7 +6,8 @@
 ;(function(){
 var BASE = 'bui/grid/plugins/';
 define('bui/grid/plugins',['bui/common',BASE + 'selection',BASE + 'cascade',BASE + 'cellediting',BASE + 'rowediting',BASE + 'autofit',
-	BASE + 'dialogediting',BASE + 'menu',BASE + 'summary',BASE + 'rownumber',BASE + 'columngroup',BASE + 'rowgroup',BASE + 'columnresize'],function (r) {
+	BASE + 'dialogediting',BASE + 'menu',BASE + 'summary',BASE + 'rownumber',BASE + 'columngroup',BASE + 'rowgroup',
+	BASE + 'columnresize', BASE + 'rowmark'],function (r) {
 	var BUI = r('bui/common'),
 		Selection = r(BASE + 'selection'),
 
@@ -25,7 +26,8 @@ define('bui/grid/plugins',['bui/common',BASE + 'selection',BASE + 'cascade',BASE
 			RowNumber : r(BASE + 'rownumber'),
 			ColumnGroup : r(BASE + 'columngroup'),
 			RowGroup : r(BASE + 'rowgroup'),
-			ColumnResize : r(BASE + 'columnresize')
+			ColumnResize : r(BASE + 'columnresize'),
+			RowMark : r(BASE + 'rowmark')
 		});
 		
 	return Plugins;
