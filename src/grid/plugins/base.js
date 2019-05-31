@@ -27,7 +27,8 @@ define('bui/grid/plugins',['bui/common',BASE + 'selection',BASE + 'cascade',BASE
 			ColumnGroup : r(BASE + 'columngroup'),
 			RowGroup : r(BASE + 'rowgroup'),
 			ColumnResize : r(BASE + 'columnresize'),
-			RowMark : r(BASE + 'rowmark')
+			RowMark : r(BASE + 'rowmark'),
+			Badge : r(BASE + 'badge')
 		});
 		
 	return Plugins;
