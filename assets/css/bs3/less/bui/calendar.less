@@ -140,9 +140,6 @@
         }
       }
     }
-
-
-
   }
 
   //footer
@@ -176,118 +173,117 @@
     border: none;
   }
 }
-
-
-//时间选择
-.x-timepicker{
-  .bui-simple-list{
-    padding: 0px 2px;
-    // margin: -18px 0 0;
-    width: 228px;
-    color: #333333;
-    background-color: #ffffff;
-    font-size: 13px;
-    border: 1px solid #ccc;
+.bui-datepanel{
+  padding: 4px 0px;
+  margin: 2px 0 0;
+  width: 232px;
+  background-color: aliceblue;
+  .box-shadow(0 5px 10px rgba(0, 0, 0, 0.2));
+  color: @grayDark;
+  font-size: 13px;
+  border: 1px solid #ccc;
+  position: relative;
+  .bui-calendar-header{
+    padding: 0 4px;
     position: relative;
-  }
-  ul{
+    height: 30px;
     .clearfix();
-  }
-  li{
-    float: left;
-    width: 32px;
-    a{
-      display: block;
-      padding: 5px 0;
+
+    .x-datepicker-prev, .x-datepicker-next{
+      width: 32px;
+      height: 30px;
+      position: absolute;
+      top: 0;
+      cursor: pointer;
+      background-color: @white;
       text-align: center;
-      color: @grayDark;
+      &:hover{
+        background-color: @grayLighter;
+      }
+
+      .icon{
+        vertical-align: text-bottom;
+        background-image: url('@{iconSpritePath}');
+      }
+    }
+    .x-datepicker-prev{
+      left: 4px;
+    }
+    .x-datepicker-month{
+      height: 30px;
+      line-height: 30px;
+      text-align: center;
+      font-weight: bold;
+    }
+    .x-datepicker-next{
+      right: 4px;
+    }
+  }
+  .bui-calendar-panel{
+    padding: 0 4px;
+    height: calc(100% - 30px);
+    .x-datepicker-inner{
+      width: 100%;
+      height: 100%;
+    }
+    th{
+      padding: 4px 5px;
+      width: 22px;
+    }
+
+    td.x-datepicker-date{
       &:hover, &:focus{
         background-color: @grayLighter;
         text-decoration: none;
       }
-    }
-  }
-}
-
-//月份选择
-.bui-monthpicker{
-  position: absolute;
-  width: 232px !important;
-  top: 0px;
-  left: 0px;
-  background-color: @white;
-  border: 1px solid #ccc;
-
-  .bui-calendar-month-panel, .bui-calendar-year-panel{
-    ul{
-      .clearfix();
-    }
-    li{
-      float: left;
-      margin: 4px 0 0 4px;
-      width: 50px;
-      height: 36px;
-
+      em{
+        font-style: normal;
+      }
       a{
         display: block;
-        // padding: 9px 0 11px;
+        padding: 5px 0;
         text-align: center;
         color: @grayDark;
-        height: 36px;
-        line-height: 36px;
-        &:hover{
-          background-color: @grayLighter;
-          text-decoration: none;
+      }
+    }
+
+    td.x-datepicker-prevday{
+      a{
+        color: @grayLight;
+      }
+    }
+
+    td.x-datepicker-disabled{
+      a{
+        color: @grayLight;
+        cursor: default;
+        &:hover, &:focus{
+          background-color: transparent;
+          // rgb(139, 154, 163)
         }
       }
     }
-    .x-monthpicker-item-selected{
+
+    td.x-datepicker-today{
+      a{
+        color: #000;
+        background-color: #ffdb99;
+
+        &:hover, &:focus{
+          background-color: #ffcd70;
+        }
+      }
+    }
+
+    td.x-datepicker-selected{
       a{
         color: @white;
-        background-color: #3276b1;
-        
-        &:hover{
-          background-color: #3276b1;
+        background-color: #9ac9f1;
+
+        &:hover, &:focus{
+          background-color: #9ac9f1;
         }
       }
-    }
-  }
-  .bui-calendar-month-panel{
-    float: left;
-    padding:0 0 4px 1px;
-    width: 114px;
-    border-right: 1px solid #ccc;
-  }
-  .bui-calendar-year-panel{
-    margin-left: 118px;
-    *margin-left: 117px;
-    // clear: left;
-
-    .x-monthpicker-yearnav{
-      padding: 14px 0 0px 0;
-      // min-width: 200px;
-      height: 26px;
-
-      .x-icon{
-        margin: 0px 18px 0px 20px;
-        cursor: pointer;
-        .icon{
-          margin-top: 2px;
-        }
-      }
-    }
-    ul{
-      *padding-bottom: 4px;
-    }
-  }
-
-  .x-monthpicker-footer{
-    padding: 6px 0 4px;
-    border-top: 1px solid #ccc;
-    text-align: center;
-
-    .bui-bar-item-button{
-      margin-right: 5px;
     }
   }
 }
