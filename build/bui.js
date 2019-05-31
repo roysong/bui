@@ -14617,13 +14617,14 @@ define('bui/data/store',['bui/data/proxy','bui/data/abstractstore','bui/data/sor
  * @ignore
  */
 
-define('bui/overlay',['bui/common','bui/overlay/overlay','bui/overlay/dialog','bui/overlay/message'],function (require) {
+define('bui/overlay',['bui/common','bui/overlay/overlay','bui/overlay/dialog','bui/overlay/message','bui/overlay/messageList'],function (require) {
   var BUI = require('bui/common'),
     Overlay = BUI.namespace('Overlay');
 
   BUI.mix(Overlay,{
     Overlay : require('bui/overlay/overlay'),
     Dialog : require('bui/overlay/dialog'),
+    MessageList : require('bui/overlay/messageList'),
     Message : require('bui/overlay/message')
   });
 
@@ -14633,6 +14634,7 @@ define('bui/overlay',['bui/common','bui/overlay/overlay','bui/overlay/dialog','b
   });
 
   BUI.Message = BUI.Overlay.Message;
+  BUI.Msg = BUI.Overlay.MessageList;
   return Overlay;
 
 });/**
@@ -15449,7 +15451,7 @@ define('bui/overlay/message',['bui/overlay/dialog'],function (require) {
           handler : success
         },{
             text:'\u53d6\u6d88',
-            elCls : 'button button-primary',
+            elCls : 'button',
             handler : hide
           }
       ],'question');
@@ -15496,13 +15498,203 @@ define('bui/overlay/message',['bui/overlay/dialog'],function (require) {
   message.Show = showMessage;
 
   return message;
+});seajs.use('bui/css/message.css');
+define('bui/overlay/messageList',['bui/common','bui/list'],function(require){
+
+	var BUI = require('bui/common'),
+		UIBase = BUI.Component.UIBase,
+		Component = BUI.Component,
+		List = require('bui/list'),
+		UIBase = Component.UIBase;
+  /**
+   * \u6d88\u606f\u63d0\u793a
+   * xclass : 'MessageList'
+   * ## \u540e\u7aef\u8bf7\u6c42\u54cd\u5e94\u6d88\u606f\u63d0\u793a
+   * <pre><code>
+   *   BUI.use('bui/messageList',function(Message){
+   *     var result = {
+   *     	 msg:"\u8bf7\u6c42\u6210\u529f",
+   *         status:"1",
+   *     }
+   *     Message.MessageList.Msg(result);
+   *   });
+   * </code></pre>
+   * ## \u666e\u901a\u6d88\u606f\u63d0\u793a
+   * <pre><code>
+   *   BUI.use('bui/messageList',function(Message){
+   *     Message.MessageList.InfoMsg("\u666e\u901a\u6d88\u606f\u63d0\u793a!!");
+   *   });
+   * </code></pre>
+   * @class messageList
+   * @extends BUI.List.List
+   * @mixins BUI.Component.UIBase.Bindable
+   */
+	var MessageList = List.List.extend([UIBase.Bindable],	
+	{
+		/*
+		 * \u6d88\u606f\u63d0\u793a    
+		 * @param {object} config \u6570\u636e\u7ed3\u6784\u4e3a\uff1a{msg:"\u6d88\u606f\u63d0\u793a\u8bed\u53e5",status:"1"} 
+		 * status 1.\u6210\u529f\u7c7b\u578b\u7684\u6d88\u606f 2.\u5931\u8d25\u7c7b\u578b\u7684\u6d88\u606f 3.\u666e\u901a\u7c7b\u578b\u7684\u6d88\u606f
+		 */
+		showMsg:function(config){
+			var _self = this;
+			if(config.status == '1'){
+				_self._sucMsg(config);
+			}else if(config.status == '2'){
+				_self._errorMsg(config);
+			}else{
+				_self._infoMsg(config);
+			}
+		},
+		/*
+		 * \u6210\u529f\u6d88\u606f
+		 * @param {String} msg \u6d88\u606f\u63d0\u793a\u8bed\u53e5\uff0c\u4e0d\u4f20\u9ed8\u8ba4\u201c\u64cd\u4f5c\u6210\u529f\uff01\uff01\u201d
+		 * @param {int} showTime \u6d88\u606f\u63d0\u793a\u5c55\u793a\u7684\u79d2\u6570\uff0c\u4e0d\u4f20\u9ed8\u8ba44s
+		 */
+		_sucMsg:function(config){
+			var _self = this;
+			var msg = config.msg?config.msg:"\u64cd\u4f5c\u6210\u529f\uff01\uff01";
+			config["msg"] = msg;
+			config["spanType"] = "x-icon-success";
+			config["iconType"] = "icon-ok";
+			_self._addMsgItem(config);
+		},
+		/*
+		 * \u6dfb\u52a0\u6d88\u606f\u63d0\u793a
+		 */
+		_addMsgItem:function(config){
+			var _self = this;
+			var showTime = config.showTime;
+			var showTime = showTime?showTime*1000:4000;
+			var item = _self.addItem(config);
+			item.get('el').find('.MessageList').fadeOut(showTime);
+			timeoutId = setTimeout(function () {
+				_self.removeItem(_self.getFirstItem());
+			}, showTime);
+		},
+		/*
+		 * \u5931\u8d25\u6d88\u606f
+		 * @param {String} msg \u6d88\u606f\u63d0\u793a\u8bed\u53e5\uff0c\u4e0d\u4f20\u9ed8\u8ba4\u201c\u64cd\u4f5c\u5931\u8d25\uff01\uff01\u201d
+		 * @param {int} showTime \u6d88\u606f\u63d0\u793a\u5c55\u793a\u7684\u79d2\u6570\uff0c\u4e0d\u4f20\u9ed8\u8ba44s
+		 */
+		_errorMsg:function(config){
+			var _self = this;
+			var msg = config.msg?config.msg:"\u64cd\u4f5c\u5931\u8d25\uff01\uff01";
+			config["msg"] = msg;
+			config["spanType"] = "x-icon-error";
+			config["iconType"] = "icon-bell";
+			_self._addMsgItem(config);
+		},
+		/*
+		 * \u666e\u901a\u6d88\u606f
+		 * @param {String} msg \u6d88\u606f\u63d0\u793a\u8bed\u53e5
+		 * @param {int} showTime \u6d88\u606f\u63d0\u793a\u5c55\u793a\u7684\u79d2\u6570\uff0c\u4e0d\u4f20\u9ed8\u8ba44s
+		 */
+		_infoMsg:function(config){
+			var _self = this;
+			config["spanType"] = "x-icon-info";
+			config["iconType"] = "icon-info";
+			_self._addMsgItem(config);
+		}
+	},{
+		ATTRS:
+		{	
+		  elAttrs :{value:{class : 'messageBox'}},
+		  /**
+		   * \u6d88\u606f\u63d0\u793a\u6a21\u677f
+		   */
+		  itemTpl :  {value: '<div  class="tips tips-small tips-info MessageList">'+
+						       '<span class="x-icon x-icon-small {spanType}"><i class="icon icon-white {iconType}"></i></span>'+
+						 '<div class="tips-content" >&nbsp;&nbsp;{msg}</div></div>'
+				 }
+	   }
+	},{
+		xclass : 'MessageList',
+		priority : 1	
+	});
+	var message;
+	function showMessage(config){
+	    if(!message){
+	    	message = new MessageList({});
+	    	message.render();
+	    }
+	    message.showMsg(config);
+	}
+	function messageFun(status){
+		return function (msg,showTime){
+		      showMessage({
+		    	    status: status,
+			        msg:msg,
+			        showTime : showTime
+			      });
+		      return message;
+	    };
+	}
+	function msgFun(){
+		return function (config){
+			showMessage(config);
+			return message;
+		};
+	}
+	var Msg = msgFun(),
+	    SucMsg = messageFun("1"),
+	    FailMsg = messageFun("2"),
+	    InfoMsg = messageFun("3");
+   /**
+    * \u64cd\u4f5c\u6d88\u606f\u63d0\u793a\u9759\u6001\u7c7b
+    * @class BUI.Msg
+    */
+  /**
+   * \u540e\u7aef\u8bf7\u6c42\u54cd\u5e94\u6d88\u606f\u63d0\u793a
+   *  <pre> <code>
+   * BUI.Msg.Msg\uff08{msg:"\u64cd\u4f5c\u6210\u529f",status:"1"}\uff09;
+   * </code> </pre>
+   * @static
+   * @method
+   * @param {object} result \u540e\u7aef\u8fd4\u56de\u7ed9\u524d\u7aef\u7684ResultMsg,\u6570\u636e\u7ed3\u6784\u4e3a\uff1a{msg:"\u6d88\u606f\u63d0\u793a\u8bed\u53e5",status:"1"} 
+   */
+	MessageList.Msg = Msg;
+  /**
+   * \u64cd\u4f5c\u6210\u529f\u6d88\u606f\u63d0\u793a
+   * <pre> <code>
+   * BUI.Msg.SucMsg\uff08"\u64cd\u4f5c\u6210\u529f\uff01\uff01",4\uff09;
+   * </code> </pre>
+   * @static
+   * @method
+   * @param  {String}   msg      \u63d0\u793a\u4fe1\u606f\uff0c\u4e0d\u4f20\u9ed8\u8ba4\u201c\u64cd\u4f5c\u6210\u529f\uff01\uff01\u201d
+   * @param  {int}      showTime \u6d88\u606f\u63d0\u793a\u5c55\u793a\u7684\u79d2\u6570\uff0c\u4e0d\u4f20\u9ed8\u8ba44s
+   */
+	MessageList.SucMsg =  SucMsg;
+  /**
+   * \u64cd\u4f5c\u5931\u8d25\u6d88\u606f\u63d0\u793a
+   * <pre> <code>
+   * BUI.Msg.FailMsg\uff08"\u64cd\u4f5c\u5931\u8d25\uff01\uff01",4\uff09;
+   * </code> </pre>
+   * @static
+   * @method
+   * @param  {String}   msg      \u63d0\u793a\u4fe1\u606f\uff0c\u4e0d\u4f20\u9ed8\u8ba4\u201c\u64cd\u4f5c\u5931\u8d25\uff01\uff01\u201d
+   * @param  {int}      showTime \u6d88\u606f\u63d0\u793a\u5c55\u793a\u7684\u79d2\u6570\uff0c\u4e0d\u4f20\u9ed8\u8ba44s
+   */
+	MessageList.FailMsg = FailMsg;
+  /**
+   * \u666e\u901a\u6d88\u606f\u63d0\u793a
+   * <pre> <code>
+   * BUI.Msg.InfoMsg\uff08"\u6d88\u606f\u63d0\u793a\uff01\uff01",4\uff09;
+   * </code> </pre>
+   * @static
+   * @method
+   * @param  {String}   msg      \u63d0\u793a\u4fe1\u606f\uff08\u6b64\u53c2\u6570\u5fc5\u4f20\uff09
+   * @param  {int}      showTime \u6d88\u606f\u63d0\u793a\u5c55\u793a\u7684\u79d2\u6570\uff0c\u4e0d\u4f20\u9ed8\u8ba44s
+   */
+	MessageList.InfoMsg = InfoMsg;
+	return MessageList;
 });/**
  * @fileOverview \u5217\u8868\u6a21\u5757\u5165\u53e3\u6587\u4ef6
  * @ignore
  */
 ;(function(){
 var BASE = 'bui/list/';
-define('bui/list',['bui/common',BASE + 'list',BASE + 'listitem',BASE + 'simplelist',BASE + 'listbox'],function (r) {
+define('bui/list',['bui/common',BASE + 'list',BASE + 'listitem',BASE + 'archorField',BASE + 'simplelist',BASE + 'listbox'],function (r) {
   var BUI = r('bui/common'),
     List = BUI.namespace('List');
 
@@ -15510,6 +15702,8 @@ define('bui/list',['bui/common',BASE + 'list',BASE + 'listitem',BASE + 'simpleli
     List : r(BASE + 'list'),
     ListItem : r(BASE + 'listitem'),
     SimpleList : r(BASE + 'simplelist'),
+    DomList : r(BASE + 'domlist'),
+    ArchorField : r(BASE + 'archorField'),
     Listbox : r(BASE + 'listbox')
   });
 
@@ -17292,6 +17486,295 @@ define('bui/list/list',['bui/common'],function (require) {
   });
 
   return list;
+});/**
+ * @fileOverview \u951a\u5206\u7ec4\u4ef6\u3002\u53f3\u4fa7\u662f\u56fa\u5b9a\u4f4d\u7f6e\u7684\u951a\u70b9\u5bfc\u822a\u680f\uff0c\u5de6\u4fa7\u662f\u5206\u5272\u5bb9\u5668\uff0c\u53ef\u653e\u7f6e\u5176\u5b83\u7ec4\u4ef6
+ * @author roysong
+ */
+define('bui/list/archorField',['bui/common','bui/list/archorGroup','bui/list/fieldGroup'],function(r){
+    var BUI = r('bui/common'),
+        ArchorGroup = r('bui/list/archorGroup'),
+        FieldGroup = r('bui/list/fieldGroup'),
+        AF_PREFIX = 'arfi-',
+        FIELD_PREFIX = 'field-'
+        ARCHOR_PREFIX = 'archor-';
+    /**
+     * \u951a\u5206\u7ec4\u4ef6
+     * xclass : 'archorField'
+     * <pre><code>
+     * &lt;button id="add"&gt;\u6dfb\u52a0&lt;/button&gt;	
+	 * &lt;button id="del"&gt;\u5220\u9664&lt;/button&gt;	
+	 * &lt;div id="container"&gt;&lt;/div&gt;
+	 * &lt;script type="text/javascript"&gt;
+	 * 	BUI.use(['bui/list'],function(List){
+	 * 		var simpleData = [];
+	 * 		for(var i = 0;i < 50;i++){
+	 * 			var d = {text:'\u9009\u9879'+i,value:i};
+	 * 			simpleData.push(d);
+	 * 		}
+	 * 		var lev1 = new List.SimpleList({
+	 * 			items : simpleData
+	 * 		});
+	 * 		var lev2 = new List.SimpleList({
+	 * 			items : simpleData
+	 * 		});
+	 * 		var data = [
+	 * 			{name : '\u4e00\u7ea7\u6d41\u7a0b',children : [lev1]},
+	 * 			{name : '\u4e8c\u7ea7\u6d41\u7a0b',children : [lev2]},
+	 * 		];
+	 * 		var af = new List.ArchorField({
+	 * 			render : '#container',
+	 * 			//right : '200px',
+	 * 			items : data
+	 * 		});
+	 * 		af.render();
+	 * 		$('#del').click(function(){
+	 * 			af.removeItem('\u4e8c\u7ea7\u6d41\u7a0b');
+	 * 		});
+	 * 		$('#add').click(function(){
+	 * 			var lev3 = new List.SimpleList({items : simpleData});
+	 * 			af.addItem({name: '\u4e09\u7ea7\u6d41\u7a0b',children: [lev3]});
+	 * 		});
+	 * 	});
+	 * &lt;/script&gt;
+     *</code></pre>
+     * @class BUI.List.ArchorField
+     * @extends BUI.Component.Controller
+     */
+    var archorField = BUI.Component.Controller.extend({
+        initializer : function(){
+            var _self = this,items = _self.get('items');
+            BUI.each(items,function(i){
+                var uid = BUI.guid(AF_PREFIX);
+                i.uid = uid;
+            });
+            var archorGroup = new ArchorGroup({
+                id : 'archorGroup',
+                items : items
+            }),
+            fieldGroup = new FieldGroup({
+                id : 'fieldGroup',
+                right : _self.get('right'),
+                items : items
+            });
+            _self.addChild(archorGroup);
+            _self.addChild(fieldGroup);
+        },
+        bindUI : function(){
+            var _self = this,fieldGroup = _self.getChild('fieldGroup');
+            // \u9875\u9762\u6eda\u52a8\u8fc7\u7a0b\u4e2d\u6839\u636e\u51fa\u73b0\u5728\u9875\u9762\u4e2d\u7684\u6807\u9898\u6e32\u67d3\u951a\u70b9\u80cc\u666f\u8272
+            $(window).on('scroll',function(){
+                if(fieldGroup.get('height') <= BUI.viewportHeight()) return;
+                // \u53ef\u89c6\u533a\u57df\u7684\u4e0a\u8fb9\u7f18\u9ad8\u5ea6\u4ee5\u53ca\u4e0b\u8fb9\u7f18\u9ad8\u5ea6
+                var visibleTop = $(window).scrollTop(),visibleBottom = visibleTop + $(window).height();
+                // \u8ba1\u7b97\u6bcf\u4e2afieldset\u76ee\u524d\u6240\u5904\u7684\u9875\u9762\u9ad8\u5ea6
+                var itemHeights = _self._calFieldItemHeight();
+                // \u5224\u65ad\u662f\u5426\u6709\u67d0\u4e2afieldset\u6b63\u597d\u4f4d\u4e8e\u53ef\u89c6\u533a\u57df\u4e2d
+                var inScreen = BUI.Array.find(itemHeights,function(i){return i.height > visibleTop && i.height < visibleBottom;})
+                // \u5982\u679c\u6ca1\u6709fieldset\u5728\u53ef\u89c6\u8303\u56f4\u5185\uff0c\u5219\u7ef4\u6301\u76ee\u524d\u951a\u70b9\u7684\u80cc\u666f\u8272\u4e0d\u53d8
+                if(inScreen){
+                    BUI.each(itemHeights,function(i){
+                        var archorTag = $(ARCHOR_PREFIX + i.uid);
+                        if(i.uid == inScreen.uid) // \u5c06\u4f4d\u4e8e\u53ef\u89c6\u533a\u57df\u4e2dfieldset\u5bf9\u5e94\u7684\u951a\u70b9\u6539\u53d8\u80cc\u666f\u989c\u8272\uff0c\u4ee3\u8868\u8fdb\u5165\u6b64\u951a\u70b9\u7684\u63a7\u5236\u8303\u56f4\u5185
+                            archorTag.css('background-color','lightblue');
+                        else // \u5c06\u5176\u5b83\u7684\u951a\u70b9\u80cc\u666f\u989c\u8272\u53d6\u6d88\uff08\u548c\u6574\u4f53\u80cc\u666f\u8272\u76f8\u540c\uff09
+                            archorTag.css('background-color','aliceblue');
+                    });
+                }
+            });
+
+        },
+        /**
+         * \u8ba1\u7b97\u5f53\u524d\u6240\u6709\u5206\u5272\u5bb9\u5668\u4e2d\u5bf9\u5e94\u951a\u70b9\u6807\u9898\u7684\u6587\u5b57\u7684\u9ad8\u5ea6
+         * @private
+         */
+        _calFieldItemHeight : function(){
+            var _self = this, heights = [],items = _self.get('items');
+            BUI.each(items,function(item){
+                var itemTag = $('#' + FIELD_PREFIX + item.uid),archorTag = $('#' + ARCHOR_PREFIX + item.uid);
+                heights.push({
+                    uid : item.uid,
+                    bc : archorTag.css('background-color'),// \u951a\u70b9\u5f53\u524d\u7684\u80cc\u666f\u8272
+                    height : itemTag.offset().top + itemTag.outerHeight()// \u6807\u9898\u6240\u5728\u7684\u9ad8\u5ea6
+                });
+            });
+            return heights;
+        },
+        /**
+         * \u6dfb\u52a0\u5b50\u9879\uff1a
+         * name\u540c\u65f6\u7528\u4e8e\u951a\u70b9\u548c\u5206\u5272\u5bb9\u5668\u7684\u6807\u9898\u663e\u793a\uff1b
+         * children\u4e3aBUI\u663e\u793a\u7ec4\u4ef6\u5217\u8868\uff0c\u4f1a\u88ab\u5206\u5272\u5bb9\u5668\u4ee5addChild\u65b9\u5f0f\u4f9d\u6b21\u52a0\u5165\u3002
+         * @param {Object} item: {name : '',children : [{BUI.Component.Controller},{BUI.Component.Controller}]}
+         */
+        addItem : function(item){
+            var _self = this,items = _self.get('items'),
+            archorGroup = _self.getChild('archorGroup'),
+            fieldGroup = _self.getChild('fieldGroup');
+            var uid = BUI.guid(AF_PREFIX);
+            item.uid = uid;
+            archorGroup.addItem(item);
+            fieldGroup.addItem(item);
+            items.push(item);
+            _self.set('items',items);
+        },
+        /**
+         * \u6309\u540d\u79f0\u5220\u9664\u65e2\u6709\u5b50\u9879
+         * @param {String} itemName 
+         */
+        removeItem : function(itemName){
+            var _self = this,items = _self.get('items'),
+            archorGroup = _self.getChild('archorGroup'),
+            fieldGroup = _self.getChild('fieldGroup'),
+            item = BUI.Array.find(items,function(i){return i.name == itemName});
+            archorGroup.removeItem(item);
+            fieldGroup.removeItem(item);
+            BUI.Array.remove(items,item);
+            _self.set('items',items);
+        }
+    },{
+        ATTRS : {
+            elStyle : {value : {'background-color' : 'aliceblue'}},
+            /**
+             * \u5206\u5272\u5bb9\u5668\u79bb\u53f3\u8fb9\u7f18\u7684\u8ddd\u79bb\u3002
+             * \u5982\u679c\u53f3\u4fa7\u951a\u6807\u7684\u6587\u5b57\u592a\u957f\uff0c\u5c31\u5e94\u9002\u5f53\u589e\u5927\u6b64\u6570\u503c\u3002
+             * @cfg {number} [right = 100px]
+             */
+            right : {value : '100px'},
+            /**
+             * \u5b50\u9879\u5217\u8868
+             * <pre><code>
+	         * 		var lev1 = new List.SimpleList({
+	         * 			items : simpleData
+	         * 		});
+	         * 		var lev2 = new List.SimpleList({
+	         * 			items : simpleData
+	         * 		});
+	         * 		var data = [
+	         * 			{name : '\u4e00\u7ea7\u6d41\u7a0b',children : [lev1]},
+	         * 			{name : '\u4e8c\u7ea7\u6d41\u7a0b',children : [lev2]},
+	         * 		];
+	         * 		var af = new List.ArchorField({
+	         * 			render : '#container',
+	         * 			//right : '200px',
+	         * 			items : data
+	         * 		});
+             * </code></pre>
+             * @cfg {Array} [items = []]
+             */
+            items : {value: []}
+        }
+    },{
+		xclass : 'archorField',
+		priority : 1	
+	});
+    return archorField;
+});/**
+ * @fileOverview \u951a\u5206\u7ec4\u4ef6\u4e2d\u951a\u70b9\u7ec4
+ * @author roysong
+ * @ignore
+ */
+define('bui/list/archorGroup',['bui/common'],function(r){
+    var BUI = r('bui/common');
+    var archorGroup = BUI.Component.Controller.extend({
+        createDom : function(){
+            var _self = this,
+            el = _self.get('el'),
+            tpl = _self.get('tpl'),
+            itemTpl = _self.get('itemTpl'),
+            itemDoms = [],
+            items = _self.get('items');
+            BUI.each(items,function(item){
+                var i = BUI.substitute(itemTpl,{uid : item.uid,itemName : item.name});
+                itemDoms.push(i);
+            });
+            _self.set('tpl',BUI.substitute(tpl,{items : itemDoms.join('')}));
+        },
+        addItem : function(item){
+            var _self = this,el = _self.get('el'),itemTpl = _self.get('itemTpl');
+            var itemDom = BUI.substitute(itemTpl,{uid : item.uid,itemName : item.name});
+            el.find('ol').append(itemDom);
+        },
+        removeItem : function(item){
+            var _self = this,el = _self.get('el');
+            el.find('#archor-'+item.uid).remove();
+        },
+    },{
+        ATTRS : {
+            elTagName : {value : 'span'},
+            elStyle : {value : {'position':'fixed','right':'25px','top':'125px','border-left':'1px solid #e8eaec'}},
+            tpl : {value : '<ol style="font-size: larger;margin: 5px 0 25px 0;">{items}</ol>'},
+            itemTpl : {value : 
+                    '<li style="height: 25px;border-bottom: 1px dashed black;padding-top: 8px;" id="archor-{uid}">'+
+                    '<a style="margin-left: 6px;" href="#{uid}">{itemName}</a>'+
+                    '</li>'},
+            items : {}
+        }
+    });
+    return archorGroup;
+});/**
+ * @fileOverview \u951a\u5206\u7ec4\u4ef6\u4e2d\u5206\u5272\u5bb9\u5668\u7ec4,\u9ed8\u8ba4\u7684\u5bb9\u5668\u4e3afieldset
+ * @author roysong
+ * @ignore
+ */
+define('bui/list/fieldGroup',['bui/common','bui/list/fieldItem'],function(r){
+    var BUI = r('bui/common'),
+        FieldItem = r('bui/list/fieldItem');
+    var fieldGroup = BUI.Component.Controller.extend({
+        initializer : function(){
+            var _self = this,
+            items = _self.get('items');
+            BUI.each(items,function(item){
+                var i = _self._initItem(item);
+                _self.addChild(i);
+            });
+        },
+        _initItem : function(item){
+            var _self = this;
+            return new FieldItem({
+                id : item.uid,
+                uid : item.uid,
+                itemName : item.name,
+                elStyle : {'margin-right' : _self.get('right')},
+                children : item.children,
+            });
+        },
+        addItem : function(item){
+            var _self = this;
+            var i = _self._initItem(item);
+            _self.addChild(i);
+        },
+        removeItem : function(item){
+            var _self = this,i = _self.getChild(item.uid);
+            _self.removeChild(i,true);
+        },
+    },{
+        ATTRS: {
+            elTagName : {value : 'span'},
+            items : {value : []},
+            /**
+             * \u53f3\u4fa7\u79bb\u7236\u5bb9\u5668\u53f3\u8fb9\u7f18\u7684\u8ddd\u79bb
+             */
+            right : {},
+        }
+    });
+    return fieldGroup;
+});/**
+ * @fileOverview \u951a\u5206\u7ec4\u4ef6\u4e2d\u5206\u5272\u5bb9\u5668,\u9ed8\u8ba4\u7684\u5bb9\u5668\u4e3afieldset
+ * @author roysong
+ * @ignore
+ */
+define('bui/list/fieldItem',['bui/common'],function(r){
+    var BUI = r('bui/common');
+    var fieldItem = BUI.Component.Controller.extend({
+
+    },{
+        ATTRS : {
+            elTagName : {value : 'fieldset'},
+            tpl : {value : '<legend style="margin-bottom: 10px;"><a id="field-{uid}" name="{uid}">{itemName}</a></legend>'},
+            uid : {},
+            itemName : {},
+        }
+    });
+    return fieldItem;
 });/**
  * @fileOverview Picker\u7684\u5165\u53e3
  * @author dxq613@gmail.com
@@ -26613,18 +27096,21 @@ define('bui/tab/tabpanel',['bui/common','bui/tab/tab','bui/tab/panels'],function
  * @ignore
  */
 
-define('bui/toolbar',['bui/common','bui/toolbar/baritem','bui/toolbar/bar','bui/toolbar/pagingbar','bui/toolbar/numberpagingbar'],function (require) {
+define('bui/toolbar',['bui/common','bui/toolbar/baritem','bui/toolbar/breadcrumb','bui/toolbar/bar','bui/toolbar/pagingbar','bui/toolbar/numberpagingbar'],function (require) {
   var BUI = require('bui/common'),
     Toolbar = BUI.namespace('Toolbar');
 
   BUI.mix(Toolbar,{
     BarItem : require('bui/toolbar/baritem'),
     Bar : require('bui/toolbar/bar'),
+    Breadcrumb : require('bui/toolbar/breadcrumb'),
     PagingBar : require('bui/toolbar/pagingbar'),
-    NumberPagingBar : require('bui/toolbar/numberpagingbar')
+    NumberPagingBar : require('bui/toolbar/numberpagingbar'),
+    Steps : require('bui/toolbar/steps')
   });
   return Toolbar;
-});/**
+});
+/**
  * @fileOverview buttons or controls of toolbar
  * @author dxq613@gmail.com, yiminghe@gmail.com
  * @ignore
@@ -26972,6 +27458,552 @@ define('bui/toolbar/bar',function(){
 	});
 
 	return Bar;
+});/**
+ * @fileOverview \u9762\u5305\u5c51\u7ec4\u4ef6
+ * @author roysong
+ */
+define('bui/toolbar/breadcrumb',['bui/common','bui/list'],function(require){
+
+	var BUI = require('bui/common'),
+		UIBase = BUI.Component.UIBase,
+		Component = BUI.Component,
+		UIBase = Component.UIBase,
+		DomList = require('bui/list').DomList,
+		CLS_ITEM = BUI.prefix + 'breadcrumb-item';
+		
+	/**
+	 * breadcrumb\u7684\u89c6\u56fe\u7c7b
+	 * @class BUI.Toolbar.BreadcrumbView
+	 * @extends BUI.Component.View
+	 * @private
+	 */
+	var breadcrumbView = Component.View.extend([DomList.View],{
+
+		renderUI:function() {
+			var el = this.get('el');
+      if (!el.attr('id')) {
+          el.attr('id', BUI.guid('breadcrumb'));
+      }
+		}
+	},{
+    ATTRS : {
+      itemContainer : {
+        valueFn : function(){
+          return this.get('el').find(this.get('breadcrumSelector'));
+        }
+      }
+    }
+  },{
+    xclass:'breadcrum-view'
+  });
+
+	/**
+	 * \u9762\u5305\u5c51
+   * xclass : 'breadcrumb'
+	 * ## \u663e\u793a\u52a8\u6001\u6570\u636e\u6e90\u7684\u6570\u636e
+   * <pre><code>
+	 *&lt;div id="form"&gt;
+	 *&lt;/div&gt;
+	 *&lt;div&gt;
+	 *	&lt;button id="addDic"&gt;\u589e\u52a0\u4e00\u7ea7\u76ee\u5f55&lt;/button&gt;
+	 *	&lt;button id="deleteDic"&gt;\u5220\u9664\u4e00\u7ea7\u76ee\u5f55&lt;/button&gt;
+	 *	&lt;button id="resetDic"&gt;\u91cd\u7f6e\u76ee\u5f55&lt;/button&gt;
+	 *&lt;/div&gt;
+	 *&lt;script type="text/javascript"&gt;
+	 *	BUI.use(['bui/toolbar/breadcrumb','bui/data'],function(Breadcrumb,Data){
+	 *		var defaultDicData = {id : '-3954',name : '\u4e3b\u76ee\u5f55'};
+	 *		var store = new Data.Store({
+	 *			data : [defaultDicData]
+	 *		});
+	 *		var bc = new Breadcrumb({
+	 *			render : '#form',
+	 *			store : store
+	 *		});
+	 *		bc.render();
+	 *		var index = 1;
+	 *		$('#addDic').click(function(){
+	 *			store.add({id : index,name : '\u76ee\u5f55' + index});
+	 *			index++;
+	 *		});
+	 *		$('#deleteDic').click(function(){
+	 *			store.remove(store.findByIndex(store.getCount() - 1));
+	 *		});
+	 *		$('#resetDic').click(function(){
+	 *			store.setResult([defaultDicData]);	
+	 *		})
+	 *		bc.on('jumpToDirectory',function(e){
+	 *			console.log(e.dic)
+	 *		})
+	 *	});
+	 *&lt;/script&gt;
+   * </code></pre>
+   * @class BUI.Toolbar.Breadcrumb
+   * @extends BUI.Component.Controller
+   * @mixins BUI.Component.UIBase.Bindable BUI.List.DomList
+   */
+	var Breadcrumb = Component.Controller.extend([UIBase.Bindable,DomList],	
+	{
+		bindUI : function(){
+			var _self = this,
+				store = _self.get('store');
+				_self.on('itemclick',function(e){
+					var item = e.item,
+						itemIdx = _self.indexOfItem(item);
+					// \u70b9\u51fb\u67d0\u4e2a\u5b50\u9879\u65f6\uff0c\u5e72\u6389\u6b64\u5b50\u9879\u4ee5\u540e\u7684\u6240\u6709\u5b50\u9879	
+					if((itemIdx + 1) < store.getCount()){//\u5f53\u70b9\u51fb\u7684\u5b50\u9879\u4e0d\u662f\u6700\u540e\u4e00\u9879\u65f6\uff0c\u624d\u6267\u884c\u5e72\u6389\u540e\u9762\u5b50\u9879\u7684\u64cd\u4f5c
+						var	records = store.getResult(),
+							newRecords = records.slice(0,itemIdx + 1);
+						store.setResult(newRecords);
+					}
+					// \u629b\u51fa\u81ea\u5b9a\u4e49\u4e8b\u4ef6
+					_self.fire("jumpToDirectory",{					
+						dic : item
+					});
+				});
+		},
+		/**
+		* \u6dfb\u52a0
+  	* @protected
+  	*/
+  	onAdd : function(e){
+  	  var _self = this,
+  	    store = _self.get('store'),
+  	    item = e.record;
+  	  if(_self.getCount() == 0){ //\u521d\u59cb\u4e3a\u7a7a\u65f6\uff0c\u5217\u8868\u8ddfStore\u4e0d\u540c\u6b65
+  	    _self.setItems(store.getResult());
+  	  }else{
+  	    _self.addItemToView(item,e.index);
+  	  }
+  	},
+  	/**
+  	 * \u5220\u9664
+  	* @protected
+  	*/
+  	onRemove : function(e){
+  	  var _self = this,
+  	    item = e.record;
+  	  _self.removeItem(item);
+  	},
+  	/**
+  	 * \u52a0\u8f7d\u6570\u636e
+  	 * @protected
+  	 */
+  	onLoad:function(){
+  	  var _self = this,
+  	    store = _self.get('store'),
+  	    items = store.getResult();
+  	  _self.set('items',items);
+  	}
+	},{
+		ATTRS:
+		{
+			events : {
+				value : {
+					/**\u70b9\u51fb\u9762\u5305\u5c51\u4e2d\u67d0\u5b50\u9879\uff0c\u5176\u540e\u5b50\u9879\u5168\u90e8\u6d88\u5931\uff0c\u5e76\u629b\u51fa\u6b64\u4e8b\u4ef6
+           * @event
+           * @name BUI.Toolbar.Breadcrumb#jumpToDirectory
+           * @param {Object} e \u70b9\u51fb\u4e8b\u4ef6
+           * @param {Object} e.dic store\u4e2d\u7684\u5355\u9879\u6570\u636e
+           */
+          'jumpToDirectory' : true
+				}
+			},
+			/**
+       * \u6392\u5e8f\u7684\u65f6\u5019\u662f\u5426\u76f4\u63a5\u8fdb\u884cDOM\u7684\u6392\u5e8f\uff0c\u4e0d\u91cd\u65b0\u751f\u6210DOM\uff0c<br>
+       * \u5728\u53ef\u5c55\u5f00\u7684\u8868\u683c\u63d2\u4ef6\uff0cTreeGrid\u7b49\u63a7\u4ef6\u4e2d\u4e0d\u8981\u4f7f\u7528\u6b64\u5c5e\u6027
+       * @type {Boolean}
+       * cfg {Boolean} frontSortable
+       * @ignore
+       */
+      frontSortable : {
+        value : false
+      },
+			/**
+			* \u83b7\u53d6\u7126\u70b9
+      * @protected
+      * @ignore
+			*/
+			focusable : {
+				value : false
+			},
+			/**
+       * \u9009\u9879\u96c6\u5408
+       * @protected
+       * @type {Array}
+       */
+      items : {
+        view:true,
+        value : []
+      },
+			/**
+       * \u9009\u9879\u7684\u6837\u5f0f\uff0c\u7528\u6765\u83b7\u53d6\u5b50\u9879
+       * <pre><code>
+       * var breadcrumb = new Toolbar.Breadcrumb({
+       *   render : '#t1',
+       *   itemCls : 'my-item', //\u81ea\u5b9a\u4e49\u6837\u5f0f\u540d\u79f0
+       *   items : [{id : '1',name : '1'},{id : '2',name : '2'}]
+       * });
+       * breadcrumb.render();
+       * </code></pre>
+       * @cfg {Object} [itemCls='breadcrumb-item']
+       */
+      itemCls : {
+        view:true,
+        value : CLS_ITEM
+			},
+			/**
+       * \u9009\u9879\u7684\u9ed8\u8ba4id\u5b57\u6bb5
+       * <pre><code>
+       * var breadcrumb = new Toolbar.Breadcrumb({
+       *   render : '#t1',
+       *   idField : 'id', //\u81ea\u5b9a\u4e49\u9009\u9879 id \u5b57\u6bb5
+       *   items : [{id : '1',name : '1'},{id : '2',name : '2'}]
+       * });
+       * breadcrumb.render();
+       *
+       * breadcrumb.getItem('1'); //\u4f7f\u7528idField\u6307\u5b9a\u7684\u5b57\u6bb5\u8fdb\u884c\u67e5\u627e
+       * </code></pre>
+       * @cfg {String} [idField = 'id']
+       */
+      idField : {
+        value : 'id'
+      },
+      /**
+       * \u9762\u5305\u5c51\u7684\u9009\u62e9\u5668\uff0c\u5c06\u9762\u5305\u5c51\u5b50\u9879\u9644\u52a0\u5230\u6b64\u8282\u70b9
+       * @protected
+       * @type {Object}
+       */
+      breadcrumSelector:{
+        view:true,
+        value:'ul'
+      },
+      /**
+       * \u5217\u8868\u9879\u7684\u9ed8\u8ba4\u6a21\u677f\u3002
+       * @ignore
+       */
+      
+      itemTpl :{
+        view : true,
+        value : '<li class="' + CLS_ITEM + '"><a href="#">{name}</a> <span class="divider">/</span></li>'
+			},
+			tpl : {
+        value:'<ul class="breadcrumb" style="margin:0;"></ul>'
+      },
+			/**
+			* @private
+      * @ignore
+			*/
+			xview : {
+				value : breadcrumbView	
+			}
+		}
+	},{
+		xclass : 'breadcrumb',
+		priority : 1	
+	});
+	Breadcrumb.view = breadcrumbView;
+	return Breadcrumb;
+});/**
+ * @fileoverview \u6b65\u9aa4\u6761\u7ec4\u4ef6
+ * @author bili
+ * @date 190518
+ */
+// seajs.use('steps.css');
+define('bui/toolbar/steps', [
+    'bui/common',
+    'bui/list'
+], function (r) {
+    var BUI = r('bui/common'),
+        List = r('bui/list');
+    /**
+	 * steps\u7684\u89c6\u56fe\u7c7b
+	 * @class BUI.Toolbar.StepsView
+	 * @extends BUI.List.SimpleListView
+	 * @private
+	 */
+    var StepsView = List.SimpleListView.extend({
+        renderUI: function () {
+            var el = this.get('el');
+            if (!el.attr('id')) {
+                el.attr('id', BUI.guid('steps'));
+            }
+        }
+    }, {
+            ATTRS: {
+            }
+        }, {
+            xclass: 'steps-view'
+        });
+    /**
+     * \u6b65\u9aa4\u6761
+     * xclass : 'steps'
+     * ## \u9759\u6001\u5c55\u793a\uff0c\u53ea\u5728item\u4e2d\u8bbe\u7f6e\u72b6\u6001
+     * \u6bcf\u4e2aitem\u8bbe\u7f6e\u4e0d\u540c\u7684\u72b6\u6001\u8fdb\u884c\u5c55\u793a
+     *{@img step-demo1.png demo1}
+     * <pre>
+     * <code>
+     * BUI.use('bui/toolbar', function (Toolbar) {
+            var setps = new Toolbar.Steps({
+                 items:[
+                    {title:'\u6b65\u9aa41',description:'\u6b65\u9aa41\u8be6\u60c5',status:'error'},
+                    {title:'\u6b65\u9aa42',description:'&lt;p&gt;\u6b65\u9aa42\u8be6\u60c5&lt;/p&gt;&lt;p style="color:red;"&gt;\u6b65\u9aa42\u8be6\u60c5&lt;/p&gt;&lt;p&gt;\u6b65\u9aa42\u8be6\u60c5&lt;/p&gt;',status:'finish'},
+                    {title:'\u6b65\u9aa43',description:'\u6b65\u9aa43\u8be6\u60c5',status:'process'},
+                    {title:'\u6b65\u9aa44',description:'\u6b65\u9aa44\u8be6\u60c5',status:'wait'},
+                ]
+            });
+            setps.render();
+        });
+     * </code>
+     * </pre>
+     * ## \u8bbe\u7f6e\u6b65\u9aa4\u6761\u7684\u5f53\u524d\u6b65\u9aa4\u548c\u5f53\u524d\u6b65\u9aa4\u72b6\u6001
+     * \u4e0d\u7528\u5355\u72ec\u8bbe\u7f6eitem\u7684\u72b6\u6001\uff0c\u6b65\u9aa4\u6761\u4f1a\u6839\u636e\u4f20\u5165\u7684current\u548cstatus\u8fdb\u884c\u6e32\u67d3,\u540c\u65f6\u4e0d\u5c55\u793aicon
+     * {@img step-demo2.png demo2}
+     * <pre>
+     * <code>
+     * BUI.use('bui/toolbar', function (Toolbar) {
+            var setps = new Toolbar.Steps({
+                items:[
+                    {title:'\u6b65\u9aa41',description:'\u6b65\u9aa41\u8be6\u60c5'},
+                    {title:'\u6b65\u9aa42',description:'\u6b65\u9aa42\u8be6\u60c5'},
+                    {title:'\u6b65\u9aa43',description:'\u6b65\u9aa43\u8be6\u60c5'},
+                    {title:'\u6b65\u9aa44',description:'\u6b65\u9aa44\u8be6\u60c5'},
+                ],
+                current:3,
+                status:'error',
+                showIcon:false
+            });
+            setps.render();
+        });
+     * </code>
+     * </pre>
+     * ## \u81ea\u5b9a\u4e49\u6bcf\u4e2aitem\u7684icon
+     * \u5982\u9700\u8bbe\u7f6e\u5f53\u524d\u6b65\u9aa4\uff0c\u63a8\u8350\u5f53\u524d\u6b65\u9aa4\u72b6\u6001\u8bbe\u7f6e\u4e3afinish
+     * {@img step-demo3.png demo3}
+     * <pre>
+     * <code>
+     * var setps2 = new Toolbar.Steps({
+            items:[
+                {title:'\u6b65\u9aa41',description:'\u6b65\u9aa41\u8be6\u60c5',icon:'icon-search'},
+                {title:'\u6b65\u9aa42',description:'\u6b65\u9aa42\u8be6\u60c5',icon:'icon-camera'},
+                {title:'\u6b65\u9aa43',description:'\u6b65\u9aa43\u8be6\u60c5',icon:'icon-user'},
+                {title:'\u6b65\u9aa44',description:'\u6b65\u9aa44\u8be6\u60c5',icon:'icon-calendar'},
+            ],
+            current:3,
+            status:'finish'
+        });
+     * </code>
+     * </pre>
+     * @class BUI.Toolbar.Steps
+     * @extends BUI.List.SimpleList
+     */
+    var Steps = List.SimpleList.extend({
+        initializer: function () {
+            var _self = this;
+            _self.set('items', _self._formatItems());
+        },
+        /**
+         * \u683c\u5f0f\u5316\u4f20\u5165\u7684item\uff0c\u628astring\u8f6c\u6362\u4e3a\u6240\u9700\u5bf9\u8c61
+         * @private
+         */
+        _formatItems: function () {
+            var _self = this,
+                items = _self.get('items'),
+                tmp = [];
+            BUI.each(items, function (v, i) {
+                tmp.push(_self._formatItem(v, i));
+                if(v.status == 'error' && items[i-1]){//\u9519\u8bef\u72b6\u6001\u7684\u4e0a\u4e00\u6b65\u589e\u52a0css,\u5982\u4fee\u6539\u8fde\u7ebf\u989c\u8272
+                    items[i-1].status += ' steps-next-error';
+                }
+                if(v.status == 'finish' && items[i-1]){//\u5b8c\u6210\u72b6\u6001\u7684\u4e0a\u4e00\u6b65\u589e\u52a0css\uff0c\u5982\u4fee\u6539\u8fde\u7ebf\u989c\u8272
+                    items[i-1].status += ' steps-next-finish';
+                }
+                if(v.status == 'process' && items[i-1]){//\u5b8c\u6210\u72b6\u6001\u7684\u4e0a\u4e00\u6b65\u589e\u52a0css\uff0c\u5982\u4fee\u6539\u8fde\u7ebf\u989c\u8272
+                    items[i-1].status += ' steps-next-process';
+                }
+            });
+            return tmp;
+        },
+        /**
+         * \u683c\u5f0f\u5316\u5355\u4e2astring\u4e3aitemObject
+         * @param {string} v \u9700\u8981\u8f6c\u6362\u7684\u5b57\u7b26\u4e32
+         * @param {number} i \u6570\u7ec4\u7d22\u5f15
+         * @private
+         */
+        _formatItem: function (v, i) {
+            var _self = this,showIcon = _self.get('showIcon');
+            var status = _self._getItemStatus(i,v.status);
+            v.status = status;
+            if(!showIcon){//\u4e0d\u5c55\u793aicon\u65f6
+                v.radius = 'steps-item-icon-radius';
+                v.icon = '';
+            }else if(showIcon && !v.icon){
+                v.radius = 'steps-item-icon-radius';
+                v.icon = i+1;
+            }else if(showIcon && v.icon){//\u9700\u8981\u5c55\u793aicon\uff0c\u4e14item\u4e2d\u914d\u7f6e\u4e86icon
+                v.radius = '';
+                v.icon = v.icon.indexOf('class')>=0?v.icon:'<i class="'+v.icon+'"></i>';
+            }
+            return v;
+        },
+        /**
+         * \u6839\u636e\u7d22\u5f15\u53f7\u8ba1\u7b97item\u7684class
+         * @param {number} index 
+         * @private
+         */
+        _getItemStatus: function (index,nowStatus) {
+            var _self = this, current = _self.get('current'), status = _self.get('status');
+            if (index == current - 1) {//\u8bbe\u7f6e\u4e86\u5f53\u524d\u6b65\u9aa4\u65f6\uff0c\u5f53\u524d\u72b6\u6001
+                return status ? status : 'process';
+            }
+            if (index < current - 1) {//\u8bbe\u7f6e\u4e86\u5f53\u524d\u6b65\u9aa4\u65f6\uff0c\u5176\u4ed6\u72b6\u6001
+                return 'finish'
+            }
+            if(!current){//\u672a\u8bbe\u7f6e\u5f53\u524d\u6b65\u9aa4\u65f6\uff0c\u6839\u636eitem\u7684\u88c5\u6001\u8fdb\u884c\u5c55\u793a
+                return nowStatus;
+            }
+        },
+        /**
+         * \u4fee\u6539current\uff0c\u91cd\u65b0\u6e32\u67d3\u6b65\u9aa4\u6761
+         * @param {number} \u5f53\u524d\u6b65\u9aa4 
+         */
+        setCurrent: function (item) {
+            var _self = this, current = -1;
+            _self.get('items').forEach(function (v, i) {
+                if (item == v) {
+                    current = i+1;
+                }
+            });
+            if (current > 0) {
+                _self.set('current', current);
+                _self.set('items', _self._formatItems());
+                _self.get('items').forEach(function (item) {
+                    _self.updateItem(item)
+                });
+            }
+        },
+        /**
+         * \u4fee\u6539\u5f53\u524d\u9009\u4e2d\u7684\u6b65\u9aa4\u6761
+         * @param {Object} item \u5f53\u524d\u70b9\u51fb\u7684\u5143\u7d20\uff0c\u4e00\u822c\u4f20\u5165\u4e3aitemclick\u4e8b\u4ef6\u7684e.item
+         */
+        setSelected: function (item) {
+            var _self = this,items = _self.get('items');
+            items.forEach(function(v){
+                if(v==item){
+                    v.selected = 'steps-item-selected';
+                }else{
+                    v.selected = '';
+                }
+            });
+            _self.set('items',items);
+            _self.get('items').forEach(function (item) {
+                _self.updateItem(item)
+            });
+        },
+        /**
+         * \u53d6\u6d88\u9009\u4e2d
+         * @param {Object} item \u5f53\u524d\u70b9\u51fb\u7684\u5143\u7d20\uff0c\u4e00\u822c\u4f20\u5165\u4e3aitemclick\u4e8b\u4ef6\u7684e.item
+         */
+        cancelSelected:function(item){
+            var _self = this,items = _self.get('items');
+            items.forEach(function(v){
+                if(v==item){
+                    v.selected = '';
+                }
+            });
+            _self.set('items',items);
+            _self.get('items').forEach(function (item) {
+                _self.updateItem(item)
+            });
+        }
+    }, {
+            ATTRS: {
+                /**
+                 * \u5217\u8868\u9879\u7684\u9ed8\u8ba4\u6a21\u677f\u3002
+                 * @ignore
+                 */
+                itemTpl: {
+                    view: true,
+                    value: '<li class="steps-item steps-item-{status} {selected}">' +
+                        '<div class="steps-item-icon {radius}">{icon}</div>' +
+                        '<div class="steps-item-content">' +
+                        '<div class="steps-item-title">{title}</div>' +
+                        '<div class="steps-item-description">{description}</div>' +
+                        '</div>' +
+                        '</li>'
+                },
+                /**
+                 *  @ignore
+                 */
+                idField: {
+                    value: 'index'
+                },
+                /**
+                 * \u7ec4\u4ef6\u7684\u9ed8\u8ba4\u6a21\u677f\u3002
+                 * @ignore
+                 */
+                tpl: {
+                    value: '<div class="step"><ul></ul></div>',
+                    childContainer: 'ul'
+                },
+                /**
+                 * \u5bf9\u8c61\u6570\u7ec4\uff0c\u5355\u4e2a\u5bf9\u8c61\u5c5e\u6027\u5982\u4e0b\uff1a
+                 * <pre>
+                 * &#123; 
+                 * status: \u6307\u5b9a\u72b6\u6001\u3002\u5f53\u4e0d\u914d\u7f6e\u8be5\u5c5e\u6027\u65f6\uff0c\u4f1a\u4f7f\u7528 Steps \u7684 current \u6765\u81ea\u52a8\u6307\u5b9a\u72b6\u6001\u3002
+                 *          \u53ef\u9009\uff1await \u672a\u6267\u884c
+                 *                process \u5904\u7406\u4e2d
+                 *                finish \u5df2\u5b8c\u6210
+                 *                error \u9519\u8bef
+                 * text: \u6807\u9898, 
+                 * description: \u6b65\u9aa4\u7684\u8be6\u60c5\u63cf\u8ff0\uff0c\u53ef\u9009, 
+                 * icon: \u6b65\u9aa4\u56fe\u6807\u7684\u7c7b\u578b\uff0c\u53ef\u9009 
+                 * &#125;
+                 * </pre>
+                 * @cfg {Object[]}
+                 */
+                items: {
+                    view: true,
+                    value: []
+                },
+                /**
+			     * @private
+                 * @ignore
+			     */
+                stepsOl: {
+                    view: true,
+                    value: 'ul'
+                },
+                /**
+                 * \u5f53\u524d\u6b65\u9aa4
+                 * @cfg {?number}
+                 */
+                current: {},
+                /**
+                 * \u5f53\u524d\u6b65\u9aa4\u72b6\u6001,\u9ed8\u8ba4\u4e3aprocess  
+                 * \u53ef\u9009\u9879\u4e3a\uff1a  
+                 *          wait \u672a\u6267\u884c  
+                 *          process \u5904\u7406\u4e2d  
+                 *          finish \u5df2\u5b8c\u6210  
+                 *          error \u9519\u8bef  
+                 * @cfg {?string}
+                 */
+                status: {},
+                /**
+                 * \u662f\u5426\u5c55\u793aicon\uff0c\u9ed8\u8ba4\u4e3atrue
+                 * @cfg{boolean}
+                 */
+                showIcon:{value:true},
+                /**
+			     * @private
+                 * @ignore
+			     */
+                xview: {
+                    value: StepsView
+                }
+            }
+        });
+    Steps.View = StepsView;
+    return Steps;
 });/**
  * @fileOverview  a specialized toolbar that is bound to a Grid.Store and provides automatic paging control.
  * @author dxq613@gmail.com, yiminghe@gmail.com
@@ -33379,7 +34411,8 @@ define('bui/grid/format',function (require) {
 ;(function(){
 var BASE = 'bui/grid/plugins/';
 define('bui/grid/plugins',['bui/common',BASE + 'selection',BASE + 'cascade',BASE + 'cellediting',BASE + 'rowediting',BASE + 'autofit',
-	BASE + 'dialogediting',BASE + 'menu',BASE + 'summary',BASE + 'rownumber',BASE + 'columngroup',BASE + 'rowgroup',BASE + 'columnresize'],function (r) {
+	BASE + 'dialogediting',BASE + 'menu',BASE + 'summary',BASE + 'rownumber',BASE + 'columngroup',BASE + 'rowgroup',BASE + 'columnresize',
+	BASE + 'badge'],function (r) {
 	var BUI = r('bui/common'),
 		Selection = r(BASE + 'selection'),
 
@@ -33398,7 +34431,8 @@ define('bui/grid/plugins',['bui/common',BASE + 'selection',BASE + 'cascade',BASE
 			RowNumber : r(BASE + 'rownumber'),
 			ColumnGroup : r(BASE + 'columngroup'),
 			RowGroup : r(BASE + 'rowgroup'),
-			ColumnResize : r(BASE + 'columnresize')
+			ColumnResize : r(BASE + 'columnresize'),
+			Badge : r(BASE + 'badge')
 		});
 		
 	return Plugins;
@@ -36392,6 +37426,299 @@ define('bui/grid/plugins/columnresize',function (require) {
 
   return Resize;
 });/**
+ * @fileOverview badge \u5fbd\u6807
+ * @author bili
+ * @ignore
+ */
+define('bui/grid/plugins/badge', ['bui/common'], function (require) {
+    var BUI = require('bui/common'),
+        UA = BUI.UA;
+    /**
+     * \u6839\u636e HSB \u8272\u5f69\u6a21\u578b\u8fdb\u884c\u8bbe\u8ba1\uff0c\u5e73\u8861\u4e86\u53ef\u8bfb\u6027\u3001\u7f8e\u611f\u4ee5\u53ca\u53ef\u7528\u6027\u5f97\u51fa
+     */
+    STATUS = {
+        success: '#52c41a',
+        error: '#f5222d',
+        default: '#d9d9d9',
+        processing: '#1890ff',
+        warning: '#faad14'
+    };
+    /**
+     * ## \u5fbd\u6807\u63d2\u4ef6
+     * \u53ea\u80fd\u7528\u4e8eBUI.Component.Controller\u53ca\u5176\u5b50\u7c7b
+     * ### \u57fa\u672c\u4f7f\u7528
+     * {@img badge1.png}
+     * <pre><code>
+     * BUI.use(['bui/common','bui/grid'], function (BUI,Grid) {
+            var button = new BUI.Component.Controller({
+                id:'button',
+                width:90,
+                plugins: [Grid.Plugins.Badge],
+                badgeCfg: {
+                    count: 10,
+                },
+                content:"&lt;button class='button button-success'&gt;\u6d4b\u8bd5\u6309\u94ae&lt;/button&ge;"
+            });
+            button.render();
+        });
+     * </code></pre>
+     * ### \u8d85\u8fc7\u4e00\u5b9a\u6570\u91cf\u7684\u5c55\u793a\u4e3a\u8bbe\u5b9a\u6570\u91cf+
+     * {@img badge2.png}
+     * <pre><code>
+     * BUI.use(['bui/common','bui/grid'], function (BUI,Grid) {
+            var button = new BUI.Component.Controller({
+                id:'button',
+                width:90,
+                plugins: [Grid.Plugins.Badge],
+                badgeCfg: {
+                    count: 10,
+                    overflowCount:5
+                },
+                content:"&lt;button class='button button-success'&gt;\u6d4b\u8bd5\u6309\u94ae&lt;/button&ge;"
+            });
+            button.render();
+        });
+     * </code></pre>
+     * ### \u8bbe\u7f6e\u4e0d\u540c\u72b6\u6001
+     * {@img badge3.png}
+     * BUI.use(['bui/common','bui/grid'], function (BUI,Grid) {
+            var button = new BUI.Component.Controller({
+                id:'button',
+                width:90,
+                plugins: [Grid.Plugins.Badge],
+                badgeCfg: {
+                    count: 10,
+                    status:'warning'
+                },
+                content:"&lt;button class='button button-success'&gt;\u6d4b\u8bd5\u6309\u94ae&lt;/button&ge;"
+            });
+            button.render();
+        });
+     * </code></pre>
+     * ### \u4e0d\u5c55\u793a\u6570\u5b57\uff0c\u53ea\u5c55\u793a\u5c0f\u5706\u70b9
+     * {@img badge4.png}
+     * ### \u81ea\u5b9a\u4e49\u80cc\u666f\u8272
+     * {@img badge5.png}
+     * 
+     *  @class BUI.Grid.Plugins.Badge
+     *  @extends BUI.Base
+     */ 
+    var Badge = function (cfg) {
+        Badge.superclass.constructor.call(this, cfg);
+    };
+    BUI.extend(Badge, BUI.Base);
+    Badge.ATTRS = {
+        /**
+         * ## \u4f7f\u7528\u5fbd\u6807\u63d2\u4ef6\u7684\u7ec4\u4ef6\u9700\u4f20\u5165\u7684\u53c2\u6570\u5217\u8868
+         * 
+         * ---
+         * ###  color: {string} 
+         * \u81ea\u5b9a\u4e49\u5c0f\u5706\u70b9\u989c\u8272  
+         * \u4e0estatus\u540c\u65f6\u8bbe\u7f6e\u65f6\uff0ccolor\u7684\u4f18\u5148\u7ea7\u9ad8\u4e8estatus  
+         * \u652f\u6301\u4ee5\u4e0b\u4e24\u79cd\u5b9a\u4e49\u65b9\u5f0f  
+         * *** Presets: html\u5185\u7f6e\u989c\u8272 ***
+         * 
+         *  - <span style="background-color:pink">pink</span>
+         *  - <span style="background-color:red">red</span>
+         *  - <span style="background-color:yellow">yellow</span>
+         *  - <span style="background-color:orange">orange</span>
+         * 
+         * *** Custom: \u5341\u516d\u8fdb\u5236html\u989c\u8272 ***
+         * 
+         *  - <span style="background-color:#f50">'#f50'</span>
+         *  - <span style="background-color:#2db7f5">'#2db7f5'</span>
+         *  - <span style="background-color:#87d068">'#87d068'</span>
+         *  - <span style="background-color:#108ee9">'#108ee9'</span>
+         * 
+         * ---
+         * ### status: {string}  default error 
+         * *** \u72b6\u6001,\u6839\u636e\u4e0d\u540c\u72b6\u6001\u5c55\u793a\u4e0d\u540c\u989c\u8272\u7684\u5fbd\u6807 ***
+         * 
+         * - <span style="background-color:#52c41a">success</span>
+         * - <span style="background-color:#f5222d">error</span>
+         * - <span style="background-color:#1890ff">processing</span>
+         * - <span style="background-color:#faad14">warning</span>
+         * 
+         * ---
+         * ### count: {number} default 0  
+         * \u5c55\u793a\u7684\u6570\u5b57   
+         * \u5982\u679c\u8bbe\u7f6e\u4e86overflowCount\u53c2\u6570\uff0c\u5927\u4e8e overflowCount \u65f6\u663e\u793a\u4e3a ${overflowCount}+  
+         * 
+         * ---
+         * ### dot: {boolean} default false 
+         * \u4e3atrue\u65f6\u53ea\u663e\u793a\u6709\u4e00\u4e2a\u5706\u70b9  
+         * 
+         * ---
+         * ### overflowCount {number} 
+         * \u5c55\u793a\u5c01\u9876\u7684\u6570\u5b57\u503c     
+         * ${count}\u8d85\u8fc7\u6b64\u503c\u65f6\uff0c\u663e\u793a\u4e3a${overflowCount}+  
+         * 
+         * ---
+         * ### showZero {boolean} default false 
+         * ${count}\u4e3a0\u65f6\uff0c\u662f\u5426\u5c55\u793a\u5fbd\u6807  
+         * \u9ed8\u8ba4\u4e0d\u5c55\u793a  
+         * 
+         * --- 
+         * ### text {string} 
+         * \u8bbe\u7f6e\u6570\u5b57\u524d\u7684\u6587\u672c   
+         * 
+         * @cfg {Object}
+         */
+        badgeCfg: {
+            /**
+             * \u81ea\u5b9a\u4e49\u5c0f\u5706\u70b9\u989c\u8272  
+             * \u4e0estatus\u540c\u65f6\u8bbe\u7f6e\u65f6\uff0ccolor\u7684\u4f18\u5148\u7ea7\u9ad8\u4e8estatus  
+             * \u652f\u6301\u4ee5\u4e0b\u4e24\u79cd\u5b9a\u4e49\u65b9\u5f0f  
+             * ### Presets: html\u5185\u7f6e\u989c\u8272
+             *  - <span style="background-color:pink">pink</span>
+             *  - <span style="background-color:red">red</span>
+             *  - <span style="background-color:yellow">yellow</span>
+             *  - <span style="background-color:orange">orange</span>
+             * 
+             * ### Custom: \u5341\u516d\u8fdb\u5236html\u989c\u8272
+             *  - <span style="background-color:#f50">'#f50'</span>
+             *  - <span style="background-color:#2db7f5">'#2db7f5'</span>
+             *  - <span style="background-color:#87d068">'#87d068'</span>
+             *  - <span style="background-color:#108ee9">'#108ee9'</span>
+             * {?string}
+             * @ignore
+             */
+            color: {},
+            /**
+             * ### \u72b6\u6001,\u6839\u636e\u4e0d\u540c\u72b6\u6001\u5c55\u793a\u4e0d\u540c\u989c\u8272\u7684\u5fbd\u6807
+             * - <span style="background-color:#52c41a">success</span>
+             * - <span style="background-color:#f5222d">error</span>
+             * - <span style="background-color:#1890ff">processing</span>
+             * - <span style="background-color:#faad14">warning</span>
+             *   
+             * default error
+             * {?string}
+             * @ignore
+             * 
+             */
+            status: {},
+            /**
+             * \u5c55\u793a\u7684\u6570\u5b57  
+             * \u5982\u679c\u8bbe\u7f6e\u4e86overflowCount\u53c2\u6570\uff0c\u5927\u4e8e overflowCount \u65f6\u663e\u793a\u4e3a ${overflowCount}+  
+             * default 0  
+             * {number} 
+             * @ignore
+             * 
+             */
+            count: { value: 0 },
+            /**
+             * \u4e3atrue\u65f6\u53ea\u663e\u793a\u6709\u4e00\u4e2a\u5706\u70b9  
+             * default false  
+             * {?boolean}
+             * @ignore
+             * 
+             */
+            dot: { value: false },
+            /**
+             * \u5c55\u793a\u5c01\u9876\u7684\u6570\u5b57\u503c  
+             * ${count}\u8d85\u8fc7\u6b64\u503c\u65f6\uff0c\u663e\u793a\u4e3a${overflowCount}+  
+             * {?number}
+             * @ignore
+             * 
+             */
+            overflowCount: {},
+            /**
+             * ${count}\u4e3a0\u65f6\uff0c\u662f\u5426\u5c55\u793a\u5fbd\u6807  
+             * \u9ed8\u8ba4\u4e0d\u5c55\u793a  
+             * default false  
+             * {?boolean}
+             * @ignore
+             * 
+             */
+            showZero: { value: false },
+            /**
+             * \u8bbe\u7f6e\u6570\u5b57\u524d\u7684\u6587\u672c
+             * {?string}
+             * @ignore
+             * 
+             */
+            text: {}
+        },
+        badgeTpl: {
+            value: '<sup class="{badgeSupCls} eno-badge-sup" style="display: {badgeSupDisplay};{badgeBackgroundColorStyle}">{text}{badgeShowCount}</sup>'
+        }
+    };
+    BUI.augment(Badge, {
+        initializer:function(controller){
+            controller.updateBadge=this.updateBadge.bind(this);
+            this.set('controller',controller);
+        },
+        renderUI: function (controller) {
+            var _self = this;
+            _self.updateBadge();
+        },
+        /**
+         * \u6839\u636e\u914d\u7f6e\u8ba1\u7b97\u9700\u8981\u5c55\u793a\u7684\u503c
+         * @private
+         */
+        _initStatus: function (controller) {
+            var item = controller.get('badgeCfg');
+            var result = {
+                badgeShowCount: item.count,
+                badgeSupCls: 'eno-badge-count eno-badge-multiple-words',
+                badgeSupDisplay :'inline-block',
+                badgeBackgroundColorStyle:'',
+                text:item.text
+            }
+
+            //count\u4e3a0\u65f6\u662f\u5426\u5c55\u793a
+            if (!(item.showZero || item.count)) {
+                result.badgeSupDisplay = 'none';
+            }
+            //\u5224\u65adoverflowCount\u6765\u4fee\u6539\u5c55\u793a\u7684count\u503c
+            if (item.overflowCount && item.count > item.overflowCount) {
+                result.badgeShowCount = item.overflowCount + "+";
+            }
+            //status\u4fee\u6539sup\u80cc\u666f\u8272
+            if (item.status) {
+                result.badgeBackgroundColorStyle = 'background-color:' + STATUS[item.status];
+            }
+            //color\u4fee\u6539sup\u80cc\u666f\u8272
+            if (item.color) {
+                result.badgeBackgroundColorStyle = 'background-color:' + item.color;
+            }
+            //\u6839\u636e\u662f\u5426\u5c55\u793a\u7ea2\u70b9{dot}\u5224\u65adsup\u7684class
+            if (item.dot) {
+                result.badgeSupCls = 'eno-badge-dot';
+                result.text = '';
+                result.badgeShowCount = '';
+            }
+            return result;
+        },
+        /**
+         * \u66f4\u65b0\u5fbd\u6807\uff0c\u91cd\u65b0\u6e32\u67d3\u5fbd\u6807\u5185\u5bb9
+         * <pre><code>
+         * $("#button").click(function(){
+         *   list.set('badgeCfg',{count:10})
+         *   list.updateBadge()
+         * });
+         */
+        updateBadge: function () {
+            var _self = this,controller = _self.get('controller'), el = controller.get('el');
+            try {
+                //\u8ba1\u7b97\u6bcf\u4e00\u9879item\u5e94\u8be5\u6dfb\u52a0\u7684\u5fbd\u6807
+                var param = _self._initStatus(controller);
+                var suphtml = BUI.substitute(_self.get('badgeTpl'), param);
+                el.find(".eno-badge-sup").remove();
+                el.addClass('eno-badge');
+                el.append(suphtml);
+                //\u6839\u636e\u6dfb\u52a0\u7684\u5fbd\u6807\uff0c\u8ba1\u7b97\u6bcf\u4e00\u4e2aitem\u7684margin
+                var sup = el.find('.eno-badge-sup'),
+                    supWidth = sup.outerWidth(true), supHeight = sup.height();
+                controller.set('elStyle', { marginTop: supHeight / 2, marginRight: supWidth / 2 });
+            } catch (e) {
+                console.log(e)
+            }
+        }
+        
+    });
+    return Badge;
+});/**
  * @fileOverview \u9009\u62e9\u6846\u547d\u540d\u7a7a\u95f4\u5165\u53e3\u6587\u4ef6
  * @ignore
  */
@@ -38165,10 +39492,12 @@ define('bui/tooltip',['bui/common','bui/tooltip/tip','bui/tooltip/tips'],functio
     Tooltip = BUI.namespace('Tooltip'),
     Tip = require('bui/tooltip/tip'),
     Tips = require('bui/tooltip/tips');
+    Badge = require('bui/tooltip/badge');
 
   BUI.mix(Tooltip,{
     Tip : Tip,
-    Tips : Tips
+    Tips : Tips,
+    Badge : Badge
   });
   return Tooltip;
 });/**
@@ -38579,6 +39908,243 @@ define('bui/tooltip/tips',['bui/common','bui/tooltip/tip'],function(require) {
   });
 
   return Tips;
+});/**
+ * @fileoverview \u5fbd\u6807\u7ec4\u4ef6
+ * @author bili
+ * @date 190524
+ */
+define('bui/tooltip/badge', ['bui/common'], function (r) {
+    var BUI = r('bui/common'), Component = BUI.Component,
+    STATUS={
+        success :'#52c41a',
+        error   :'#f5222d',
+        default :'#d9d9d9',
+        processing :'#1890ff',
+        warning :'#faad14'
+    };
+    /**
+     * ## \u5fbd\u6807\u7ec4\u4ef6
+     * ### \u57fa\u672c\u4f7f\u7528
+     * {@img badge1.png demo1}
+     * <pre><code>
+     * BUI.use('bui/tooltip', function (Tooltip) {
+            var badge = new Tooltip.Badge({
+                count: 10,//\u5fbd\u6807\u4e0a\u663e\u793a\u7684\u6570\u91cf
+                children: [
+                    //\u9700\u8981\u663e\u793a\u5fbd\u6807\u7684\u7ec4\u4ef6
+                    {xclass:'controller',content:'&lt;button class="button button-success"&gt;\u6d4b\u8bd5\u6309\u94ae&lt;/button&gt;'},
+                ]
+            });
+            badge.render();
+        });
+     * </code></pre>
+     * ***
+     * ### \u8d85\u8fc7\u4e00\u5b9a\u6570\u91cf\u7684\u5c55\u793a\u4e3a\u8bbe\u5b9a\u6570\u91cf+
+     * {@img badge2.png demo2}
+     * <pre><code>
+     * BUI.use('bui/tooltip', function (Tooltip) {
+            var badge = new Tooltip.Badge({
+                count: 10,//\u5fbd\u6807\u4e0a\u663e\u793a\u7684\u6570\u91cf
+                overflowCount:5, //\u8d85\u51fa\u6b64\u6570\u91cf\u7684\u5c55\u793a\u4e3a5+
+                children: [
+                    //\u9700\u8981\u663e\u793a\u5fbd\u6807\u7684\u7ec4\u4ef6
+                    {xclass:'controller',content:'&lt;button class="button button-success"&gt;\u6d4b\u8bd5\u6309\u94ae&lt;/button&gt;'},
+                ]
+            });
+            badge.render();
+        });
+     * </code></pre>
+     * ***
+     * ### \u8bbe\u7f6e\u4e0d\u540c\u72b6\u6001
+     * {@img badge3.png demo2}
+     * <pre><code>
+     * BUI.use('bui/tooltip', function (Tooltip) {
+            var badge = new Tooltip.Badge({
+                count: 10,//\u5fbd\u6807\u4e0a\u663e\u793a\u7684\u6570\u91cf
+                status:'warning',
+                children: [
+                    //\u9700\u8981\u663e\u793a\u5fbd\u6807\u7684\u7ec4\u4ef6
+                    {xclass:'controller',content:'&lt;button class="button button-success"&gt;\u6d4b\u8bd5\u6309\u94ae&lt;/button&gt;'},
+                ]
+            });
+            badge.render();
+        });
+     * </code></pre>
+     * ***
+     * ### \u4e0d\u5c55\u793a\u6570\u5b57\uff0c\u53ea\u5c55\u793a\u5c0f\u5706\u70b9
+     * {@img badge4.png demo2}
+     * <pre><code>
+     * BUI.use('bui/tooltip', function (Tooltip) {
+            var badge = new Tooltip.Badge({
+                count: 10,//\u5fbd\u6807\u4e0a\u663e\u793a\u7684\u6570\u91cf
+                status:'warning',
+                dot:true,
+                children: [
+                    //\u9700\u8981\u663e\u793a\u5fbd\u6807\u7684\u7ec4\u4ef6
+                    {xclass:'controller',content:'&lt;button class="button button-success"&gt;\u6d4b\u8bd5\u6309\u94ae&lt;/button&gt;'},
+                ]
+            });
+            badge.render();
+        });
+     * </code></pre>
+     * ***
+     * ### \u81ea\u5b9a\u4e49\u80cc\u666f\u8272
+     * {@img badge5.png demo2}
+     * <pre><code>
+     * BUI.use('bui/tooltip', function (Tooltip) {
+            var badge = new Tooltip.Badge({
+                count: 10,//\u5fbd\u6807\u4e0a\u663e\u793a\u7684\u6570\u91cf
+                status:'warning',
+                color:'#ff00ff',
+                children: [
+                    //\u9700\u8981\u663e\u793a\u5fbd\u6807\u7684\u7ec4\u4ef6
+                    {xclass:'controller',content:'&lt;button class="button button-success"&gt;\u6d4b\u8bd5\u6309\u94ae&lt;/button&gt;'},
+                ]
+            });
+            badge.render();
+        });
+     * </code></pre>
+     * ***
+     * @class BUI.Tooltip.Badge
+     * @extends BUI.Component.Controller
+     */
+    return Component.Controller.extend({
+        initializer:function(){
+            this._updateStatus();
+        },
+        /**
+         * \u6839\u636e\u914d\u7f6e\u8ba1\u7b97\u9700\u8981\u5c55\u793a\u7684\u503c
+         * @private
+         */
+        _updateStatus:function(){
+            var _self = this;
+            _self.set('showCount',_self.get('count'));
+            _self.set('supCls','eno-badge-count eno-badge-multiple-words')
+            //count\u4e3a0\u65f6\u662f\u5426\u5c55\u793a
+            if(!(_self.get('showZero') || _self.get('count'))){
+                _self.set('supDisplay','none');
+            }else{
+                _self.set('supDisplay','inline-block');
+            }
+            //\u5224\u65adoverflowCount\u6765\u4fee\u6539\u5c55\u793a\u7684count\u503c
+            if(_self.get('overflowCount')&&_self.get('count')>_self.get('overflowCount')){
+                _self.set('showCount',_self.get('overflowCount')+"+");
+            }
+            //status\u4fee\u6539sup\u80cc\u666f\u8272
+            if(_self.get('status')){
+                _self.set('backgroundColorStyle','background-color:'+STATUS[_self.get('status')]+';')
+            }
+            //color\u4fee\u6539sup\u80cc\u666f\u8272
+            if(_self.get('color')){
+                _self.set('backgroundColorStyle','background-color:'+_self.get('color')+';')
+            }
+            //\u6839\u636e\u662f\u5426\u5c55\u793a\u7ea2\u70b9{dot}\u5224\u65adsup\u7684class
+            if(_self.get('dot')){
+                _self.set('supCls','eno-badge-dot');
+                _self.set('text','');
+                _self.set('showCount','');
+            }
+            return {
+                supCls:_self.get('supCls'),
+                text:_self.get('text'),
+                showCount:_self.get('showCount'),
+                supCls:_self.get('supCls'),
+                supDisplay:_self.get('supDisplay'),
+                backgroundColorStyle:_self.get('backgroundColorStyle'),
+            }
+        },
+        renderUI:function(){
+            var _self = this,el = _self.get('el'),sup = el.find('#eno-badge-sup'),
+            supWidth = sup.outerWidth(true),supHeight = sup.height();
+            _self.set('elStyle',{marginTop:supHeight/2,marginRight:supWidth/2});
+        },
+        /**
+         * \u4fee\u6539\u5c5e\u6027\uff0c\u6839\u636e\u4fee\u6539\u7684\u5c5e\u6027\u91cd\u65b0\u6e32\u67d3\u5fbd\u6807\u5185\u5bb9  
+         * @param {string} \u4fee\u6539\u5c5e\u6027\u7684key \u53c2\u7167config
+         * @param {string} \u4fee\u6539\u5c5e\u6027\u7684\u503c
+         */
+        setStatus:function(key,value){
+            var _self = this,el = _self.get('el');
+            _self.set(key,value);
+            var showParam = _self._updateStatus();
+            el.find("#eno-badge-sup").remove();
+            var html = BUI.substitute(_self.get('tpl'),showParam)
+            el.append(html);
+        }
+    }, {
+            ATTRS: {
+                /**
+                 * \u81ea\u5b9a\u4e49\u5c0f\u5706\u70b9\u989c\u8272  
+                 * \u4e0estatus\u540c\u65f6\u8bbe\u7f6e\u65f6\uff0ccolor\u7684\u4f18\u5148\u7ea7\u9ad8\u4e8estatus  
+                 * \u652f\u6301\u4ee5\u4e0b\u4e24\u79cd\u5b9a\u4e49\u65b9\u5f0f  
+                 * ### Presets: html\u5185\u7f6e\u989c\u8272
+                 *  - <span style="background-color:pink">pink</span>
+                 *  - <span style="background-color:red">red</span>
+                 *  - <span style="background-color:yellow">yellow</span>
+                 *  - <span style="background-color:orange">orange</span>
+                 * 
+                 * ### Custom: \u5341\u516d\u8fdb\u5236html\u989c\u8272
+                 *  - <span style="background-color:#f50">'#f50'</span>
+                 *  - <span style="background-color:#2db7f5">'#2db7f5'</span>
+                 *  - <span style="background-color:#87d068">'#87d068'</span>
+                 *  - <span style="background-color:#108ee9">'#108ee9'</span>
+                 * @cfg {?string}
+                 */
+                color:{},
+                /**
+                 * ### \u72b6\u6001,\u6839\u636e\u4e0d\u540c\u72b6\u6001\u5c55\u793a\u4e0d\u540c\u989c\u8272\u7684\u5fbd\u6807
+                 * - <span style="background-color:#52c41a">success</span>
+                 * - <span style="background-color:#f5222d">error</span>
+                 * - <span style="background-color:#1890ff">processing</span>
+                 * - <span style="background-color:#faad14">warning</span>
+                 *   
+                 * default error
+                 * @cfg {?string}
+                 */
+                status:{},
+                /**
+                 * \u5c55\u793a\u7684\u6570\u5b57  
+                 * \u5982\u679c\u8bbe\u7f6e\u4e86overflowCount\u53c2\u6570\uff0c\u5927\u4e8e overflowCount \u65f6\u663e\u793a\u4e3a ${overflowCount}+  
+                 * default 0  
+                 * @cfg {number} 
+                 */
+                count:{value:0},
+                /**
+                 * \u4e3atrue\u65f6\u53ea\u663e\u793a\u6709\u4e00\u4e2a\u5706\u70b9  
+                 * default false  
+                 * @cfg {?boolean}
+                 */
+                dot:{value:false},
+                /**
+                 * \u5c55\u793a\u5c01\u9876\u7684\u6570\u5b57\u503c  
+                 * ${count}\u8d85\u8fc7\u6b64\u503c\u65f6\uff0c\u663e\u793a\u4e3a${overflowCount}+  
+                 * @cfg {?number}
+                 */
+                overflowCount:{},
+                /**
+                 * ${count}\u4e3a0\u65f6\uff0c\u662f\u5426\u5c55\u793a\u5fbd\u6807  
+                 * \u9ed8\u8ba4\u4e0d\u5c55\u793a  
+                 * default false  
+                 * @cfg {?boolean}
+                 */
+                showZero:{value:false},
+                /**
+                 * \u8bbe\u7f6e\u6570\u5b57\u524d\u7684\u6587\u672c
+                 * @cfg {?string}
+                 */
+                text:{},
+                tpl:{
+                    value:'<sup class="{supCls}" id="eno-badge-sup" style="display: {supDisplay};{backgroundColorStyle}">{text}{showCount}</sup>'
+                },
+                elTagName:{
+                    value:'span'
+                },
+                elCls:{
+                    // value:'eno-badge-content'
+                    value:'eno-badge'
+                }
+            }
+        });
 });(function () {
   
   if(BUI.loaderScript.getAttribute('data-auto-use') == 'false'){
