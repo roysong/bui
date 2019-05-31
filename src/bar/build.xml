@@ -27,6 +27,10 @@
 			<path path="steps.js"/>
 			<path path="pagingbar.js"/>
 			<path path="numberpagingbar.js"/>
+			<path path="image.js"/>
+			<path path="commonLabel.js"/>
+			<path path="portalItem.js"/>
+			<path path="portal.js"/>
 		</concat>
     </target>
 
