@@ -60,14 +60,28 @@
 }
 
 // 徽标css
-.eno-badge-content{
-	position:absolute;
+.eno-badge {
+	-webkit-box-sizing: border-box;
+	box-sizing: border-box;
+	margin: 0;
+	padding: 0;
+	color: rgba(0, 0, 0, 0.65);
+	font-size: 14px;
+	font-variant: tabular-nums;
+	line-height: 1.5;
+	list-style: none;
+	-webkit-font-feature-settings: 'tnum';
+	font-feature-settings: 'tnum';
+	position: relative;
+	// display: inline-block;
+	color: unset;
+	line-height: 1;
 }
 
 
 .eno-badge-count,
 .eno-badge-dot,
-.eno-badge {
+.ant-badge .ant-scroll-number-custom-component {
 	position: absolute;
 	top: 0;
 	right: 0;

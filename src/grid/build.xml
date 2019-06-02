@@ -41,6 +41,7 @@
         <path path="plugins/rowgroup.js"/>
         <path path="plugins/columnresize.js"/>
 		<path path="plugins/rowmark.js"/>
+		<path path="plugins/badge.js"/>
 		</concat>
   </target>
 
