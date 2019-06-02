@@ -2,13 +2,14 @@
  * @fileOverview 独立的日期控件，直接使用而非弹出使用
  * @author roysong
  */
-define('bui/calendar/datepanel', ['bui/calendar/header', 'bui/calendar/panel'], function (require) {
+define('bui/calendar/datepanel', ['bui/calendar/header', 'bui/calendar/panelcontainer'], function (require) {
 
   var BUI = require('bui/common'),
     Header = require('bui/calendar/header'),
-    Panel = require('bui/calendar/panel'),
+    Panel = require('bui/calendar/panelcontainer'),
     Component = BUI.Component,
-    UIBase = BUI.Component.UIBase,
+    UIBase = Component.UIBase,
+    DATE_MASK = 'isoDate',
     DateUtil = BUI.Date;
   /**
    * 日期控件，独立使用直接展示在界面上，不用于各种弹出框场景；<br/>
@@ -32,6 +33,8 @@ define('bui/calendar/datepanel', ['bui/calendar/header', 'bui/calendar/panel'], 
    *    var datepanel = new Calendar.DatePanel({
 	 *  		render : '#form',
 	 *  		elStyle : {'font-size' : '18px'},//设置字体大小
+   *      maxDate : '2019-06-17',
+	 *		  minDate : '2019-05-17',
 	 *  		store : store,//用于渲染日期背景色的数据源；当不需要渲染日期背景色时，可不用此配置项
 	 *  		width : 800,
 	 *  		height : 600
@@ -66,14 +69,25 @@ define('bui/calendar/datepanel', ['bui/calendar/header', 'bui/calendar/panel'], 
    * @mixins BUI.Component.UIBase.Bindable
    * @extends BUI.Component.Controller
    */
-  var datePanel = Component.Controller.extend([UIBase.Bindable], {
+  var datePanel = Component.Controller.extend([UIBase.Bindable],{
 
     //设置内容
     initializer: function () {
       var _self = this, width = _self.get('width'),
         height = _self.get('height'),
-        header = new Header({ id: 'dateHeader' }),
-        panel = new Panel({ id: 'datePanel' });
+        selectedDate = _self.get('selectedDate'),
+        header = new Header({ 
+          id: 'dateHeader',
+          year :  selectedDate.getFullYear(),
+          month : selectedDate.getMonth(),
+        }),
+        panel = new Panel({ 
+          id: 'datePanel',
+          store : _self.get('store'),
+          maxDate : _self.get('maxDate'),
+          minDate : _self.get('minDate'),
+          selected : selectedDate,
+        });
       //添加头
       _self.addChild(header);
       //添加panel
@@ -89,38 +103,16 @@ define('bui/calendar/datepanel', ['bui/calendar/header', 'bui/calendar/panel'], 
         if (!DateUtil.isDateEquals(date, _self.get('selectedDate'))) {
           _self.set('selectedDate', date);
         }
-      });
-      panel.on('click', function (e) {
-        var now = _self.get('selectedDate');
-        if(now){
-          _self.fire('click', { date: BUI.Date.format(now,'yyyy-mm-dd')});
-        }
+        if(date)
+          _self.fire('click', { date: BUI.Date.format(date,DATE_MASK)});
       });
       header.on('monthchange', function (e) {
         _self._setYearMonth(e.year, e.month);
       });
     },
-    // 根据store加载得来的数据改变日期单元格的背景色
-    _updateDayColor: function (items) {
-      if (!items) return;
-      var _self = this,el = _self.get('el'),
-        dayEl = el.find('.x-datepicker-date');
-      dayEl.each(function(idx,dayDom){
-        var day = $(dayDom);
-        var d = day.attr('title');
-        day.css('background-color', '');//清空当月所有日期单元格的背景色
-        if(day.find('a').css('color') == 'white')
-          day.find('a').css('color', 'black');//将变白的日期字体颜色设为黑色
-        var record = BUI.Array.find(items,function(i){return i.date == d});
-        if(record){
-          day.css('background-color', record.color);
-          day.find('a').css('color', 'white');
-        }
-      });
-    },
     //更改年和月
     _setYearMonth: function (year, month) {
-      var _self = this,
+      var _self = this,panel = _self.getChild('datePanel'),
         selectedDate = _self.get('selectedDate'),
         date = selectedDate.getDate();
       if (year !== selectedDate.getFullYear() || month !== selectedDate.getMonth()) {
@@ -129,40 +121,15 @@ define('bui/calendar/datepanel', ['bui/calendar/header', 'bui/calendar/panel'], 
           newDate = DateUtil.addDay(-1, new Date(year, month + 1));
         }
         _self.set('selectedDate', newDate);
+        panel.setMonth(year,month);
       }
-        },
-    //设置所选日期
-    _uiSetSelectedDate: function (v) {
-      var _self = this,
-        year = v.getFullYear(),
-        month = v.getMonth();
-
-      _self.getChild('dateHeader').setMonth(year, month);
-      _self.getChild('datePanel').set('selected', v);
-      _self.fire('datechange', { date: v });
     },
-    //设置最大值
-    _uiSetMaxDate: function (v) {
-      var _self = this;
-      _self.get('panel').set('maxDate', v);
-      _self._updateTodayBtnAble();
+    onLoad : function(){
+      var _self = this,panel = _self.getChild('datePanel'),
+      store = _self.get('store'),items = store.getResult();
+      if(items)
+        panel.updateColor(items);
     },
-    //设置最小值
-    _uiSetMinDate: function (v) {
-      var _self = this;
-      _self.get('panel').set('minDate', v);
-      _self._updateTodayBtnAble();
-    },
-  	/**
-  	 * 加载数据时改变日期的背景颜色
-  	 * @protected
-  	 */
-    onLoad: function () {
-      var _self = this,
-  	    store = _self.get('store'),
-  	    items = store.getResult();
-      _self._updateDayColor(items);
-    }
   }, {
       ATTRS:
       {
@@ -183,7 +150,7 @@ define('bui/calendar/datepanel', ['bui/calendar/header', 'bui/calendar/panel'], 
 
         },
         /**
-         * 最大日期
+         * 最大日期，设置这个值以后，大于最大日期的日子点击是没有click事件抛出的
          * <pre><code>
          *   datePanel.set('maxDate','2013-07-29');
          * </code></pre>
@@ -193,7 +160,7 @@ define('bui/calendar/datepanel', ['bui/calendar/header', 'bui/calendar/panel'], 
 
         },
         /**
-         * 最小日期
+         * 最小日期，设置了这个值以后，小于最小日期的日子点击是没有click事件抛出的
          * <pre><code>
          *   datePanel.set('minDate','2013-07-29');
          * </code></pre>
@@ -225,13 +192,6 @@ define('bui/calendar/datepanel', ['bui/calendar/header', 'bui/calendar/panel'], 
             * @param {Date} e.date
             */
             'click': false,
-            /**
-             * @event
-             * @name BUI.Calendar.DatePanel#datechange
-             * @param {Object} e 选中的日期发生改变
-             * @param {Date} e.date
-             */
-            'datechange': false,
             /**
             * @event
             * @name BUI.Calendar.DatePanel#monthchange
