@@ -53,8 +53,11 @@
 			<path path="rule.js"/>
             <path path="rules.js"/>
             <path path="remote.js"/>
-			
+            
+			<path path="flotSearch.js" />
+            <path path="search/flotSearchText.js" /> 
+            <path path="search/searchFloatForm.js" />
+
 		</concat>
     </target>
-
 </project>
