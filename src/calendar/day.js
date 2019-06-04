@@ -22,9 +22,9 @@ define('bui/calendar/day',['bui/common'],function(r){
         day = date.getDay(),
         todayCls = _self._isToday(date) ? CLS_TODAY:'',
         dayOfWeek = weekDays[day],
-         //不是本月则处于不活动状态
         //不在指定的最大最小范围内，禁止选中
         dateType = _self._isInRange(date) ? 
+         //不是本月则处于不活动状态
         (_self._isCurrentMonth(date) ? dateTypes.active : dateTypes.deactive) : 
         dateTypes.disabled
         ;

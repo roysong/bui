@@ -85,7 +85,7 @@ define('bui/calendar/panelcontainer',['bui/common','bui/calendar/week'],function
       _self.on('selectedDate',function(e){
         el.find('.'+CLS_SELECTED).removeClass(CLS_SELECTED);
         e.el.addClass(CLS_SELECTED);
-        delete e.el;
+        delete e.el;//由于事件会继续抛出，删除它的dom属性以免内存泄露
         _self.set('selected',e.date);
         _self.fire('selectedchange',e);
       }); 
@@ -138,8 +138,8 @@ define('bui/calendar/panelcontainer',['bui/common','bui/calendar/week'],function
            * @param {Object} e 点击事件
            * @param {Date} e.date
            */
-          'selectedchange' : true,
-          'monthchange' : false,
+          'selectedchange' : false,
+          'selectedDate' : false,
         }
       },
       /**

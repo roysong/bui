@@ -4,7 +4,8 @@
  */
 
 define('bui/calendar',['bui/common','bui/calendar/calendar','bui/calendar/monthpicker','bui/calendar/datepicker',
-	'bui/calendar/datepickerclear','bui/calendar/monthpickerclear','bui/calendar/clearctl','bui/calendar/datepanel'],function (require) {
+  'bui/calendar/datepickerclear','bui/calendar/monthpickerclear','bui/calendar/clearctl','bui/calendar/datepanel',
+  'bui/calendar/panelcontainer','bui/calendar/week','bui/calendar/day'],function (require) {
   var BUI = require('bui/common'),
     Calendar = BUI.namespace('Calendar');
   BUI.mix(Calendar,{

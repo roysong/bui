@@ -27,10 +27,13 @@
 			<path path="panel.js"/>
 			<path path="calendar.js"/>
 			<path path="datepicker.js"/>
-			<path path="datepanel.js"/>
 			<path path="clearctl.js"/>
 			<path path="datepickerclear.js"/>
 			<path path="monthpickerclear.js"/>
+			<path path="datepanel.js"/>
+			<path path="panelcontainer.js"/>
+			<path path="week.js"/>
+			<path path="day.js"/>
 		</concat>
     </target>
 
