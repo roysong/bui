@@ -1,4 +1,4 @@
-﻿/**
+/**
  * @fileOverview Row Mark 行列数据颜色标记及其图例展示插件
  * @ignore
  * @author lilt
