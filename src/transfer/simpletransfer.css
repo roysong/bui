@@ -1,0 +1,18 @@
+.simpletransfer li {
+  border-bottom: 1px dashed slategray 
+}
+/* li奇数行背景色*/
+.simpletransfer li:nth-child(odd) {
+  color: #333;
+  background: white;
+}
+/* li偶数行背景色*/
+.simpletransfer li:nth-child(even) {
+  color: #333;
+  background:aliceblue;
+}
+/* li行高亮背景色*/
+.simpletransfer li:hover {
+  color: white;
+  background: lightskyblue;
+}

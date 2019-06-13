@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>穿梭框demo</title>
+ 
+	<link rel="stylesheet" href="E:/GitHubRepo/bui/build/css/bs3/dpl-min.css">
+  <link rel="stylesheet" href="E:/GitHubRepo/bui/build/css/bs3/bui-min.css">
+
+</head>
+<body>
+  <script src="E:/GitHubRepo/bui/src/jquery-1.8.1.min.js"></script>
+  <script src="E:/GitHubRepo/bui/build/bui.js"></script>
+
+  <script type="text/javascript">
+    BUI.use(['bui/data', 'bui/list/simplelist', 'bui/transfer/transfer'],function(Data, Simplelist, Transfer){
+
+      var leftData = [
+				{id: '1', name:'张三'},
+				{id: '2', name:'李四'},
+				{id: '3', name:'王五'},
+        {id: '4', name:"赵六"}
+      ];
+      var leftStore = new Data.Store({
+				data : leftData
+      });
+      var leftList = new Simplelist({
+        store : leftStore,
+        multipleSelect : true,
+				itemTpl : '<li><span class="x-checkbox"></span>{name}</li>',
+				elCls : 'bui-select-list'
+      });
+      var rightStore = new Data.Store({
+				matchFunction : function(obj1, obj2) {
+					return obj1.id == obj2.id;
+				}
+      });
+      var rightList = new Simplelist({
+        store : rightStore,
+        multipleSelect : true,
+				itemTpl : '<li><span class="x-checkbox"></span>{name}</li>',
+				elCls : 'bui-select-list'
+      });
+      var transfer = new Transfer({
+        left : leftList,
+        right : rightList
+      });
+      transfer.render();
+      transfer.on('moveIn', function(e) {
+				rightStore.add(leftList.getSelection(), true);
+			});
+			transfer.on('moveOut', function() {
+				rightStore.remove(rightList.getSelection());
+			});
+			transfer.on('moveInAll', function() {
+				rightStore.add(leftList.getItems(), true);
+			});
+			transfer.on('moveOutAll', function() {
+				rightStore.setResult([]);
+			});
+    });
+  </script>
+</body>
+</html>
