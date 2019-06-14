@@ -1,11 +1,10 @@
-﻿/**
+/**
  * @fileOverview Row Mark 行列数据颜色标记及其图例展示插件
  * @ignore
  * @author lilt
  * @since 2019-05-17 19:11:28
  */
 define('bui/grid/plugins/rowmark',['bui/common','bui/toolbar'], function(require) {
-  'use strict';
   var Toolbar = require('bui/toolbar'), ROWNUMBER_CLS_NUMBER = 'x-grid-rownumber';
     /**
      * grid插件 

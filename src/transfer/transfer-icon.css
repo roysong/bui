@@ -1,0 +1,20 @@
+.transfer .left {
+  background-image: url(../img/transfer-icon/left.png);
+  background-repeat: no-repeat;
+  background-position: center;
+}
+.transfer .left-double {
+  background-image: url(../img/transfer-icon/left-double.png);
+  background-repeat: no-repeat;
+  background-position: center;
+}
+.transfer .right {
+  background-image: url(../img/transfer-icon/right.png);
+  background-repeat: no-repeat;
+  background-position: center;
+}
+.transfer .right-double {
+  background-image: url(../img/transfer-icon/right-double.png);
+  background-repeat: no-repeat;
+  background-position: center;
+}

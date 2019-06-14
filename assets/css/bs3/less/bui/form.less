@@ -22,3 +22,30 @@ input.bui-form-field-error,textarea.bui-form-field-error, .bui-form-field-error 
   .inline-block();
   margin-right: 10px;
 }
+
+//浮动查询表单
+.searchMask{
+  position: fixed;
+    left: 0;
+    top: 0;
+  height: 100%;
+    opacity: 0.1;
+    filter: alpha(opacity=50);
+    position: absolute;
+    width: 100%;
+    z-index: 1040;
+    background-color: #333333;
+}
+#searchFloatForm{
+  position: absolute;
+  top:0px;
+  z-index: 1080;
+  width: 100%;
+  padding-top: 19px;
+  box-shadow:-3px 3px 10px 5px #d5d6de;
+  background-color: white
+}
+.flotSearch .breadcrumb:hover{
+  background-color: aliceblue;
+  cursor:pointer;
+}

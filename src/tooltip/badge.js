@@ -230,7 +230,8 @@ define('bui/tooltip/badge', ['bui/common'], function (r) {
                     value:'span'
                 },
                 elCls:{
-                    value:'eno-badge-content'
+                    // value:'eno-badge-content'
+                    value:'eno-badge'
                 }
             }
         });

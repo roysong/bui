@@ -21,6 +21,7 @@
 	"../../src/progressbar",
 	"../../src/module",
 	"../../src/uploader",
-	"../../src/tooltip"
+	"../../src/tooltip",
+	"../../src/transfer"
     ]
 }
