@@ -73,7 +73,7 @@ define('bui/toolbar/portalItem',['bui/common', 'bui/list', 'bui/toolbar/image', 
 		});
 	 * </code>
 	 * </pre>
-	 * @class BUI.toolbar.PortalItem
+	 * @class BUI.Toolbar.PortalItem
 	 * @extends BUI.Component.Controller
 	 */
 	var PortalItem = Component.Controller.extend({

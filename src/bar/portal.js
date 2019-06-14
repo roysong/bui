@@ -32,7 +32,7 @@ define('bui/toolbar/portal',['bui/common', 'bui/toolbar/portalItem'],function(re
 	  });
 	 * </code>
 	 * </pre>
-	 * @class BUI.toolbar.Protal
+	 * @class BUI.Toolbar.Protal
 	 * @extends BUI.Component.Controller
 	 */
 	var Portal = Component.Controller.extend({
