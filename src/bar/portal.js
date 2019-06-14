@@ -3,19 +3,19 @@
  * @author zhengwm
  * @date 190520
  */
-define('bui/layout/portal',['bui/common', 'bui/layout/portalItem'],function(require){
+define('bui/toolbar/portal',['bui/common', 'bui/toolbar/portalItem'],function(require){
 
 	var BUI = require('bui/common'),
 		Component = BUI.Component,
-		PortalItem = require('bui/layout/portalItem');
+		PortalItem = require('bui/toolbar/portalItem');
 	/**
 	 * 分类入口
 	 * ##创建对象
 	 * <pre>
 	 * <code>
-	 * BUI.use(['bui/layout/portal'],function(Protal){
+	 * BUI.use(['bui/toolbar/portal'],function(Protal){
 			var portal = new Protal({
-				render : '#j_layout',
+				render : '#j_toolbar',
 				items: [
 					{type:'0', singleText:{text:'段科室用户'}},
 					{type:'1', elStyle:{'width':200}, singleText:{text:'车间用户', elStyle:{'color':'red'}}},
@@ -32,7 +32,7 @@ define('bui/layout/portal',['bui/common', 'bui/layout/portalItem'],function(requ
 	  });
 	 * </code>
 	 * </pre>
-	 * @class BUI.Layout.Protal
+	 * @class BUI.toolbar.Protal
 	 * @extends BUI.Component.Controller
 	 */
 	var Portal = Component.Controller.extend({
@@ -53,7 +53,7 @@ define('bui/layout/portal',['bui/common', 'bui/layout/portalItem'],function(requ
 			 * 选择的数据集合
 			 * <pre><code>
 			 * var portal = new Protal({
-					render : '#j_layout',
+					render : '#j_toolbar',
 					items: [
 						{type:'0', singleText:{text:'段科室用户', elStyle:{'font-size':40}}},
 						{type:'1', elStyle:{'width':200}, singleText:{text:'车间用户', elStyle:{'color':'red'}}},
@@ -82,7 +82,7 @@ define('bui/layout/portal',['bui/common', 'bui/layout/portalItem'],function(requ
 				value :{
 				  /**点击分类图标，获取对应的类型对象，并抛出此事件
 		           * @event
-		           * @name BUI.Layout.Portal#itemClick
+		           * @name BUI.toolbar.Portal#itemClick
 		           * @param {Object} e 点击事件
 		           * @param {Object} e.item 类型对象
 		           */
