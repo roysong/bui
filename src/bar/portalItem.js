@@ -148,8 +148,8 @@ define('bui/toolbar/portalItem',['bui/common', 'bui/list', 'bui/toolbar/image', 
 			//将数据中设定的样式与本身样式进行绑定
 			if(_self.get('item').elStyle != undefined){
 				_self.set('elStyle', _self.get('item').elStyle);
-				_self.set('width',_self.get('el').css('width'));
-				_self.set('height',_self.get('el').css('height'));
+				_self.set('width',  _self.get('item').elStyle.width);
+				_self.set('height', _self.get('item').elStyle.height);
 			}
 			if(_self.get('item').width != undefined){
 				_self.set('width', _self.get('item').width);
@@ -159,8 +159,8 @@ define('bui/toolbar/portalItem',['bui/common', 'bui/list', 'bui/toolbar/image', 
 			}			
 			
 			if(imgContainer && labelContainer){
-				//计算图片的高度和文字的高度
-				imgContainer.set('height', _self.get('height')/3*2);
+				//计算图片的高度和文字的高度				
+				imgContainer.set('height', parseFloat(_self.get('height'))/3*2);
 				labelContainer.set('height', _self.get('height') - imgContainer.get('height'));
 				portal_image.set('height', imgContainer.get('height'));
 				portal_image.set('width', imgContainer.get('width'));
