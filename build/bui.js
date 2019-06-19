@@ -14617,13 +14617,14 @@ define('bui/data/store',['bui/data/proxy','bui/data/abstractstore','bui/data/sor
  * @ignore
  */
 
-define('bui/overlay',['bui/common','bui/overlay/overlay','bui/overlay/dialog','bui/overlay/message'],function (require) {
+define('bui/overlay',['bui/common','bui/overlay/overlay','bui/overlay/dialog','bui/overlay/message','bui/overlay/messageList'],function (require) {
   var BUI = require('bui/common'),
     Overlay = BUI.namespace('Overlay');
 
   BUI.mix(Overlay,{
     Overlay : require('bui/overlay/overlay'),
     Dialog : require('bui/overlay/dialog'),
+    MessageList : require('bui/overlay/messageList'),
     Message : require('bui/overlay/message')
   });
 
@@ -14633,6 +14634,7 @@ define('bui/overlay',['bui/common','bui/overlay/overlay','bui/overlay/dialog','b
   });
 
   BUI.Message = BUI.Overlay.Message;
+  BUI.Msg = BUI.Overlay.MessageList;
   return Overlay;
 
 });/**
@@ -15449,7 +15451,7 @@ define('bui/overlay/message',['bui/overlay/dialog'],function (require) {
           handler : success
         },{
             text:'\u53d6\u6d88',
-            elCls : 'button button-primary',
+            elCls : 'button',
             handler : hide
           }
       ],'question');
@@ -15496,13 +15498,203 @@ define('bui/overlay/message',['bui/overlay/dialog'],function (require) {
   message.Show = showMessage;
 
   return message;
+});seajs.use('bui/css/message.css');
+define('bui/overlay/messageList',['bui/common','bui/list'],function(require){
+
+	var BUI = require('bui/common'),
+		UIBase = BUI.Component.UIBase,
+		Component = BUI.Component,
+		List = require('bui/list'),
+		UIBase = Component.UIBase;
+  /**
+   * \u6d88\u606f\u63d0\u793a
+   * xclass : 'MessageList'
+   * ## \u540e\u7aef\u8bf7\u6c42\u54cd\u5e94\u6d88\u606f\u63d0\u793a
+   * <pre><code>
+   *   BUI.use('bui/messageList',function(Message){
+   *     var result = {
+   *     	 msg:"\u8bf7\u6c42\u6210\u529f",
+   *         status:"1",
+   *     }
+   *     Message.MessageList.Msg(result);
+   *   });
+   * </code></pre>
+   * ## \u666e\u901a\u6d88\u606f\u63d0\u793a
+   * <pre><code>
+   *   BUI.use('bui/messageList',function(Message){
+   *     Message.MessageList.InfoMsg("\u666e\u901a\u6d88\u606f\u63d0\u793a!!");
+   *   });
+   * </code></pre>
+   * @class messageList
+   * @extends BUI.List.List
+   * @mixins BUI.Component.UIBase.Bindable
+   */
+	var MessageList = List.List.extend([UIBase.Bindable],	
+	{
+		/*
+		 * \u6d88\u606f\u63d0\u793a    
+		 * @param {object} config \u6570\u636e\u7ed3\u6784\u4e3a\uff1a{msg:"\u6d88\u606f\u63d0\u793a\u8bed\u53e5",status:"1"} 
+		 * status 1.\u6210\u529f\u7c7b\u578b\u7684\u6d88\u606f 2.\u5931\u8d25\u7c7b\u578b\u7684\u6d88\u606f 3.\u666e\u901a\u7c7b\u578b\u7684\u6d88\u606f
+		 */
+		showMsg:function(config){
+			var _self = this;
+			if(config.status == '1'){
+				_self._sucMsg(config);
+			}else if(config.status == '2'){
+				_self._errorMsg(config);
+			}else{
+				_self._infoMsg(config);
+			}
+		},
+		/*
+		 * \u6210\u529f\u6d88\u606f
+		 * @param {String} msg \u6d88\u606f\u63d0\u793a\u8bed\u53e5\uff0c\u4e0d\u4f20\u9ed8\u8ba4\u201c\u64cd\u4f5c\u6210\u529f\uff01\uff01\u201d
+		 * @param {int} showTime \u6d88\u606f\u63d0\u793a\u5c55\u793a\u7684\u79d2\u6570\uff0c\u4e0d\u4f20\u9ed8\u8ba44s
+		 */
+		_sucMsg:function(config){
+			var _self = this;
+			var msg = config.msg?config.msg:"\u64cd\u4f5c\u6210\u529f\uff01\uff01";
+			config["msg"] = msg;
+			config["spanType"] = "x-icon-success";
+			config["iconType"] = "icon-ok";
+			_self._addMsgItem(config);
+		},
+		/*
+		 * \u6dfb\u52a0\u6d88\u606f\u63d0\u793a
+		 */
+		_addMsgItem:function(config){
+			var _self = this;
+			var showTime = config.showTime;
+			var showTime = showTime?showTime*1000:4000;
+			var item = _self.addItem(config);
+			item.get('el').find('.MessageList').fadeOut(showTime);
+			timeoutId = setTimeout(function () {
+				_self.removeItem(_self.getFirstItem());
+			}, showTime);
+		},
+		/*
+		 * \u5931\u8d25\u6d88\u606f
+		 * @param {String} msg \u6d88\u606f\u63d0\u793a\u8bed\u53e5\uff0c\u4e0d\u4f20\u9ed8\u8ba4\u201c\u64cd\u4f5c\u5931\u8d25\uff01\uff01\u201d
+		 * @param {int} showTime \u6d88\u606f\u63d0\u793a\u5c55\u793a\u7684\u79d2\u6570\uff0c\u4e0d\u4f20\u9ed8\u8ba44s
+		 */
+		_errorMsg:function(config){
+			var _self = this;
+			var msg = config.msg?config.msg:"\u64cd\u4f5c\u5931\u8d25\uff01\uff01";
+			config["msg"] = msg;
+			config["spanType"] = "x-icon-error";
+			config["iconType"] = "icon-bell";
+			_self._addMsgItem(config);
+		},
+		/*
+		 * \u666e\u901a\u6d88\u606f
+		 * @param {String} msg \u6d88\u606f\u63d0\u793a\u8bed\u53e5
+		 * @param {int} showTime \u6d88\u606f\u63d0\u793a\u5c55\u793a\u7684\u79d2\u6570\uff0c\u4e0d\u4f20\u9ed8\u8ba44s
+		 */
+		_infoMsg:function(config){
+			var _self = this;
+			config["spanType"] = "x-icon-info";
+			config["iconType"] = "icon-info";
+			_self._addMsgItem(config);
+		}
+	},{
+		ATTRS:
+		{	
+		  elAttrs :{value:{class : 'messageBox'}},
+		  /**
+		   * \u6d88\u606f\u63d0\u793a\u6a21\u677f
+		   */
+		  itemTpl :  {value: '<div  class="tips tips-small tips-info MessageList">'+
+						       '<span class="x-icon x-icon-small {spanType}"><i class="icon icon-white {iconType}"></i></span>'+
+						 '<div class="tips-content" >&nbsp;&nbsp;{msg}</div></div>'
+				 }
+	   }
+	},{
+		xclass : 'MessageList',
+		priority : 1	
+	});
+	var message;
+	function showMessage(config){
+	    if(!message){
+	    	message = new MessageList({});
+	    	message.render();
+	    }
+	    message.showMsg(config);
+	}
+	function messageFun(status){
+		return function (msg,showTime){
+		      showMessage({
+		    	    status: status,
+			        msg:msg,
+			        showTime : showTime
+			      });
+		      return message;
+	    };
+	}
+	function msgFun(){
+		return function (config){
+			showMessage(config);
+			return message;
+		};
+	}
+	var Msg = msgFun(),
+	    SucMsg = messageFun("1"),
+	    FailMsg = messageFun("2"),
+	    InfoMsg = messageFun("3");
+   /**
+    * \u64cd\u4f5c\u6d88\u606f\u63d0\u793a\u9759\u6001\u7c7b
+    * @class BUI.Msg
+    */
+  /**
+   * \u540e\u7aef\u8bf7\u6c42\u54cd\u5e94\u6d88\u606f\u63d0\u793a
+   *  <pre> <code>
+   * BUI.Msg.Msg\uff08{msg:"\u64cd\u4f5c\u6210\u529f",status:"1"}\uff09;
+   * </code> </pre>
+   * @static
+   * @method
+   * @param {object} result \u540e\u7aef\u8fd4\u56de\u7ed9\u524d\u7aef\u7684ResultMsg,\u6570\u636e\u7ed3\u6784\u4e3a\uff1a{msg:"\u6d88\u606f\u63d0\u793a\u8bed\u53e5",status:"1"} 
+   */
+	MessageList.Msg = Msg;
+  /**
+   * \u64cd\u4f5c\u6210\u529f\u6d88\u606f\u63d0\u793a
+   * <pre> <code>
+   * BUI.Msg.SucMsg\uff08"\u64cd\u4f5c\u6210\u529f\uff01\uff01",4\uff09;
+   * </code> </pre>
+   * @static
+   * @method
+   * @param  {String}   msg      \u63d0\u793a\u4fe1\u606f\uff0c\u4e0d\u4f20\u9ed8\u8ba4\u201c\u64cd\u4f5c\u6210\u529f\uff01\uff01\u201d
+   * @param  {int}      showTime \u6d88\u606f\u63d0\u793a\u5c55\u793a\u7684\u79d2\u6570\uff0c\u4e0d\u4f20\u9ed8\u8ba44s
+   */
+	MessageList.SucMsg =  SucMsg;
+  /**
+   * \u64cd\u4f5c\u5931\u8d25\u6d88\u606f\u63d0\u793a
+   * <pre> <code>
+   * BUI.Msg.FailMsg\uff08"\u64cd\u4f5c\u5931\u8d25\uff01\uff01",4\uff09;
+   * </code> </pre>
+   * @static
+   * @method
+   * @param  {String}   msg      \u63d0\u793a\u4fe1\u606f\uff0c\u4e0d\u4f20\u9ed8\u8ba4\u201c\u64cd\u4f5c\u5931\u8d25\uff01\uff01\u201d
+   * @param  {int}      showTime \u6d88\u606f\u63d0\u793a\u5c55\u793a\u7684\u79d2\u6570\uff0c\u4e0d\u4f20\u9ed8\u8ba44s
+   */
+	MessageList.FailMsg = FailMsg;
+  /**
+   * \u666e\u901a\u6d88\u606f\u63d0\u793a
+   * <pre> <code>
+   * BUI.Msg.InfoMsg\uff08"\u6d88\u606f\u63d0\u793a\uff01\uff01",4\uff09;
+   * </code> </pre>
+   * @static
+   * @method
+   * @param  {String}   msg      \u63d0\u793a\u4fe1\u606f\uff08\u6b64\u53c2\u6570\u5fc5\u4f20\uff09
+   * @param  {int}      showTime \u6d88\u606f\u63d0\u793a\u5c55\u793a\u7684\u79d2\u6570\uff0c\u4e0d\u4f20\u9ed8\u8ba44s
+   */
+	MessageList.InfoMsg = InfoMsg;
+	return MessageList;
 });/**
  * @fileOverview \u5217\u8868\u6a21\u5757\u5165\u53e3\u6587\u4ef6
  * @ignore
  */
 ;(function(){
 var BASE = 'bui/list/';
-define('bui/list',['bui/common',BASE + 'list',BASE + 'listitem',BASE + 'simplelist',BASE + 'listbox'],function (r) {
+define('bui/list',['bui/common',BASE + 'list',BASE + 'listitem',BASE + 'archorField',BASE + 'simplelist',BASE + 'listbox'],function (r) {
   var BUI = r('bui/common'),
     List = BUI.namespace('List');
 
@@ -15510,6 +15702,8 @@ define('bui/list',['bui/common',BASE + 'list',BASE + 'listitem',BASE + 'simpleli
     List : r(BASE + 'list'),
     ListItem : r(BASE + 'listitem'),
     SimpleList : r(BASE + 'simplelist'),
+    DomList : r(BASE + 'domlist'),
+    ArchorField : r(BASE + 'archorField'),
     Listbox : r(BASE + 'listbox')
   });
 
@@ -17293,6 +17487,295 @@ define('bui/list/list',['bui/common'],function (require) {
 
   return list;
 });/**
+ * @fileOverview \u951a\u5206\u7ec4\u4ef6\u3002\u53f3\u4fa7\u662f\u56fa\u5b9a\u4f4d\u7f6e\u7684\u951a\u70b9\u5bfc\u822a\u680f\uff0c\u5de6\u4fa7\u662f\u5206\u5272\u5bb9\u5668\uff0c\u53ef\u653e\u7f6e\u5176\u5b83\u7ec4\u4ef6
+ * @author roysong
+ */
+define('bui/list/archorField',['bui/common','bui/list/archorGroup','bui/list/fieldGroup'],function(r){
+    var BUI = r('bui/common'),
+        ArchorGroup = r('bui/list/archorGroup'),
+        FieldGroup = r('bui/list/fieldGroup'),
+        AF_PREFIX = 'arfi-',
+        FIELD_PREFIX = 'field-'
+        ARCHOR_PREFIX = 'archor-';
+    /**
+     * \u951a\u5206\u7ec4\u4ef6
+     * xclass : 'archorField'
+     * <pre><code>
+     * &lt;button id="add"&gt;\u6dfb\u52a0&lt;/button&gt;	
+	 * &lt;button id="del"&gt;\u5220\u9664&lt;/button&gt;	
+	 * &lt;div id="container"&gt;&lt;/div&gt;
+	 * &lt;script type="text/javascript"&gt;
+	 * 	BUI.use(['bui/list'],function(List){
+	 * 		var simpleData = [];
+	 * 		for(var i = 0;i < 50;i++){
+	 * 			var d = {text:'\u9009\u9879'+i,value:i};
+	 * 			simpleData.push(d);
+	 * 		}
+	 * 		var lev1 = new List.SimpleList({
+	 * 			items : simpleData
+	 * 		});
+	 * 		var lev2 = new List.SimpleList({
+	 * 			items : simpleData
+	 * 		});
+	 * 		var data = [
+	 * 			{name : '\u4e00\u7ea7\u6d41\u7a0b',children : [lev1]},
+	 * 			{name : '\u4e8c\u7ea7\u6d41\u7a0b',children : [lev2]},
+	 * 		];
+	 * 		var af = new List.ArchorField({
+	 * 			render : '#container',
+	 * 			//right : '200px',
+	 * 			items : data
+	 * 		});
+	 * 		af.render();
+	 * 		$('#del').click(function(){
+	 * 			af.removeItem('\u4e8c\u7ea7\u6d41\u7a0b');
+	 * 		});
+	 * 		$('#add').click(function(){
+	 * 			var lev3 = new List.SimpleList({items : simpleData});
+	 * 			af.addItem({name: '\u4e09\u7ea7\u6d41\u7a0b',children: [lev3]});
+	 * 		});
+	 * 	});
+	 * &lt;/script&gt;
+     *</code></pre>
+     * @class BUI.List.ArchorField
+     * @extends BUI.Component.Controller
+     */
+    var archorField = BUI.Component.Controller.extend({
+        initializer : function(){
+            var _self = this,items = _self.get('items');
+            BUI.each(items,function(i){
+                var uid = BUI.guid(AF_PREFIX);
+                i.uid = uid;
+            });
+            var archorGroup = new ArchorGroup({
+                id : 'archorGroup',
+                items : items
+            }),
+            fieldGroup = new FieldGroup({
+                id : 'fieldGroup',
+                right : _self.get('right'),
+                items : items
+            });
+            _self.addChild(archorGroup);
+            _self.addChild(fieldGroup);
+        },
+        bindUI : function(){
+            var _self = this,fieldGroup = _self.getChild('fieldGroup');
+            // \u9875\u9762\u6eda\u52a8\u8fc7\u7a0b\u4e2d\u6839\u636e\u51fa\u73b0\u5728\u9875\u9762\u4e2d\u7684\u6807\u9898\u6e32\u67d3\u951a\u70b9\u80cc\u666f\u8272
+            $(window).on('scroll',function(){
+                if(fieldGroup.get('height') <= BUI.viewportHeight()) return;
+                // \u53ef\u89c6\u533a\u57df\u7684\u4e0a\u8fb9\u7f18\u9ad8\u5ea6\u4ee5\u53ca\u4e0b\u8fb9\u7f18\u9ad8\u5ea6
+                var visibleTop = $(window).scrollTop(),visibleBottom = visibleTop + $(window).height();
+                // \u8ba1\u7b97\u6bcf\u4e2afieldset\u76ee\u524d\u6240\u5904\u7684\u9875\u9762\u9ad8\u5ea6
+                var itemHeights = _self._calFieldItemHeight();
+                // \u5224\u65ad\u662f\u5426\u6709\u67d0\u4e2afieldset\u6b63\u597d\u4f4d\u4e8e\u53ef\u89c6\u533a\u57df\u4e2d
+                var inScreen = BUI.Array.find(itemHeights,function(i){return i.height > visibleTop && i.height < visibleBottom;})
+                // \u5982\u679c\u6ca1\u6709fieldset\u5728\u53ef\u89c6\u8303\u56f4\u5185\uff0c\u5219\u7ef4\u6301\u76ee\u524d\u951a\u70b9\u7684\u80cc\u666f\u8272\u4e0d\u53d8
+                if(inScreen){
+                    BUI.each(itemHeights,function(i){
+                        var archorTag = $(ARCHOR_PREFIX + i.uid);
+                        if(i.uid == inScreen.uid) // \u5c06\u4f4d\u4e8e\u53ef\u89c6\u533a\u57df\u4e2dfieldset\u5bf9\u5e94\u7684\u951a\u70b9\u6539\u53d8\u80cc\u666f\u989c\u8272\uff0c\u4ee3\u8868\u8fdb\u5165\u6b64\u951a\u70b9\u7684\u63a7\u5236\u8303\u56f4\u5185
+                            archorTag.css('background-color','lightblue');
+                        else // \u5c06\u5176\u5b83\u7684\u951a\u70b9\u80cc\u666f\u989c\u8272\u53d6\u6d88\uff08\u548c\u6574\u4f53\u80cc\u666f\u8272\u76f8\u540c\uff09
+                            archorTag.css('background-color','aliceblue');
+                    });
+                }
+            });
+
+        },
+        /**
+         * \u8ba1\u7b97\u5f53\u524d\u6240\u6709\u5206\u5272\u5bb9\u5668\u4e2d\u5bf9\u5e94\u951a\u70b9\u6807\u9898\u7684\u6587\u5b57\u7684\u9ad8\u5ea6
+         * @private
+         */
+        _calFieldItemHeight : function(){
+            var _self = this, heights = [],items = _self.get('items');
+            BUI.each(items,function(item){
+                var itemTag = $('#' + FIELD_PREFIX + item.uid),archorTag = $('#' + ARCHOR_PREFIX + item.uid);
+                heights.push({
+                    uid : item.uid,
+                    bc : archorTag.css('background-color'),// \u951a\u70b9\u5f53\u524d\u7684\u80cc\u666f\u8272
+                    height : itemTag.offset().top + itemTag.outerHeight()// \u6807\u9898\u6240\u5728\u7684\u9ad8\u5ea6
+                });
+            });
+            return heights;
+        },
+        /**
+         * \u6dfb\u52a0\u5b50\u9879\uff1a
+         * name\u540c\u65f6\u7528\u4e8e\u951a\u70b9\u548c\u5206\u5272\u5bb9\u5668\u7684\u6807\u9898\u663e\u793a\uff1b
+         * children\u4e3aBUI\u663e\u793a\u7ec4\u4ef6\u5217\u8868\uff0c\u4f1a\u88ab\u5206\u5272\u5bb9\u5668\u4ee5addChild\u65b9\u5f0f\u4f9d\u6b21\u52a0\u5165\u3002
+         * @param {Object} item: {name : '',children : [{BUI.Component.Controller},{BUI.Component.Controller}]}
+         */
+        addItem : function(item){
+            var _self = this,items = _self.get('items'),
+            archorGroup = _self.getChild('archorGroup'),
+            fieldGroup = _self.getChild('fieldGroup');
+            var uid = BUI.guid(AF_PREFIX);
+            item.uid = uid;
+            archorGroup.addItem(item);
+            fieldGroup.addItem(item);
+            items.push(item);
+            _self.set('items',items);
+        },
+        /**
+         * \u6309\u540d\u79f0\u5220\u9664\u65e2\u6709\u5b50\u9879
+         * @param {String} itemName 
+         */
+        removeItem : function(itemName){
+            var _self = this,items = _self.get('items'),
+            archorGroup = _self.getChild('archorGroup'),
+            fieldGroup = _self.getChild('fieldGroup'),
+            item = BUI.Array.find(items,function(i){return i.name == itemName});
+            archorGroup.removeItem(item);
+            fieldGroup.removeItem(item);
+            BUI.Array.remove(items,item);
+            _self.set('items',items);
+        }
+    },{
+        ATTRS : {
+            elStyle : {value : {'background-color' : 'aliceblue'}},
+            /**
+             * \u5206\u5272\u5bb9\u5668\u79bb\u53f3\u8fb9\u7f18\u7684\u8ddd\u79bb\u3002
+             * \u5982\u679c\u53f3\u4fa7\u951a\u6807\u7684\u6587\u5b57\u592a\u957f\uff0c\u5c31\u5e94\u9002\u5f53\u589e\u5927\u6b64\u6570\u503c\u3002
+             * @cfg {number} [right = 100px]
+             */
+            right : {value : '100px'},
+            /**
+             * \u5b50\u9879\u5217\u8868
+             * <pre><code>
+	         * 		var lev1 = new List.SimpleList({
+	         * 			items : simpleData
+	         * 		});
+	         * 		var lev2 = new List.SimpleList({
+	         * 			items : simpleData
+	         * 		});
+	         * 		var data = [
+	         * 			{name : '\u4e00\u7ea7\u6d41\u7a0b',children : [lev1]},
+	         * 			{name : '\u4e8c\u7ea7\u6d41\u7a0b',children : [lev2]},
+	         * 		];
+	         * 		var af = new List.ArchorField({
+	         * 			render : '#container',
+	         * 			//right : '200px',
+	         * 			items : data
+	         * 		});
+             * </code></pre>
+             * @cfg {Array} [items = []]
+             */
+            items : {value: []}
+        }
+    },{
+		xclass : 'archorField',
+		priority : 1	
+	});
+    return archorField;
+});/**
+ * @fileOverview \u951a\u5206\u7ec4\u4ef6\u4e2d\u951a\u70b9\u7ec4
+ * @author roysong
+ * @ignore
+ */
+define('bui/list/archorGroup',['bui/common'],function(r){
+    var BUI = r('bui/common');
+    var archorGroup = BUI.Component.Controller.extend({
+        createDom : function(){
+            var _self = this,
+            el = _self.get('el'),
+            tpl = _self.get('tpl'),
+            itemTpl = _self.get('itemTpl'),
+            itemDoms = [],
+            items = _self.get('items');
+            BUI.each(items,function(item){
+                var i = BUI.substitute(itemTpl,{uid : item.uid,itemName : item.name});
+                itemDoms.push(i);
+            });
+            _self.set('tpl',BUI.substitute(tpl,{items : itemDoms.join('')}));
+        },
+        addItem : function(item){
+            var _self = this,el = _self.get('el'),itemTpl = _self.get('itemTpl');
+            var itemDom = BUI.substitute(itemTpl,{uid : item.uid,itemName : item.name});
+            el.find('ol').append(itemDom);
+        },
+        removeItem : function(item){
+            var _self = this,el = _self.get('el');
+            el.find('#archor-'+item.uid).remove();
+        },
+    },{
+        ATTRS : {
+            elTagName : {value : 'span'},
+            elStyle : {value : {'position':'fixed','right':'25px','top':'125px','border-left':'1px solid #e8eaec'}},
+            tpl : {value : '<ol style="font-size: larger;margin: 5px 0 25px 0;">{items}</ol>'},
+            itemTpl : {value : 
+                    '<li style="height: 25px;border-bottom: 1px dashed black;padding-top: 8px;" id="archor-{uid}">'+
+                    '<a style="margin-left: 6px;" href="#{uid}">{itemName}</a>'+
+                    '</li>'},
+            items : {}
+        }
+    });
+    return archorGroup;
+});/**
+ * @fileOverview \u951a\u5206\u7ec4\u4ef6\u4e2d\u5206\u5272\u5bb9\u5668\u7ec4,\u9ed8\u8ba4\u7684\u5bb9\u5668\u4e3afieldset
+ * @author roysong
+ * @ignore
+ */
+define('bui/list/fieldGroup',['bui/common','bui/list/fieldItem'],function(r){
+    var BUI = r('bui/common'),
+        FieldItem = r('bui/list/fieldItem');
+    var fieldGroup = BUI.Component.Controller.extend({
+        initializer : function(){
+            var _self = this,
+            items = _self.get('items');
+            BUI.each(items,function(item){
+                var i = _self._initItem(item);
+                _self.addChild(i);
+            });
+        },
+        _initItem : function(item){
+            var _self = this;
+            return new FieldItem({
+                id : item.uid,
+                uid : item.uid,
+                itemName : item.name,
+                elStyle : {'margin-right' : _self.get('right')},
+                children : item.children,
+            });
+        },
+        addItem : function(item){
+            var _self = this;
+            var i = _self._initItem(item);
+            _self.addChild(i);
+        },
+        removeItem : function(item){
+            var _self = this,i = _self.getChild(item.uid);
+            _self.removeChild(i,true);
+        },
+    },{
+        ATTRS: {
+            elTagName : {value : 'span'},
+            items : {value : []},
+            /**
+             * \u53f3\u4fa7\u79bb\u7236\u5bb9\u5668\u53f3\u8fb9\u7f18\u7684\u8ddd\u79bb
+             */
+            right : {},
+        }
+    });
+    return fieldGroup;
+});/**
+ * @fileOverview \u951a\u5206\u7ec4\u4ef6\u4e2d\u5206\u5272\u5bb9\u5668,\u9ed8\u8ba4\u7684\u5bb9\u5668\u4e3afieldset
+ * @author roysong
+ * @ignore
+ */
+define('bui/list/fieldItem',['bui/common'],function(r){
+    var BUI = r('bui/common');
+    var fieldItem = BUI.Component.Controller.extend({
+
+    },{
+        ATTRS : {
+            elTagName : {value : 'fieldset'},
+            tpl : {value : '<legend style="margin-bottom: 10px;"><a id="field-{uid}" name="{uid}">{itemName}</a></legend>'},
+            uid : {},
+            itemName : {},
+        }
+    });
+    return fieldItem;
+});/**
  * @fileOverview Picker\u7684\u5165\u53e3
  * @author dxq613@gmail.com
  * @ignore
@@ -17774,7 +18257,9 @@ define('bui/picker/listpicker',['bui/picker/picker','bui/list'],function (requir
  */
 ;(function(){
 var BASE = 'bui/form/';
-define('bui/form',['bui/common',BASE + 'fieldcontainer',BASE + 'form',BASE + 'row',BASE + 'fieldgroup',BASE + 'horizontal',BASE + 'rules',BASE + 'field',BASE + 'fieldgroup'],function (r) {
+define('bui/form',['bui/common',BASE + 'fieldcontainer',BASE + 'form',BASE + 'row',BASE + 'fieldgroup',BASE + 'horizontal',BASE + 'rules',BASE + 'field',BASE + 'fieldgroup'
+,BASE + 'flotSearch'
+],function (r) {
   var BUI = r('bui/common'),
     Form = BUI.namespace('Form'),
     Tips = r(BASE + 'tips');
@@ -17789,7 +18274,8 @@ define('bui/form',['bui/common',BASE + 'fieldcontainer',BASE + 'form',BASE + 'ro
     HForm : r(BASE + 'horizontal'),
     Rules : r(BASE + 'rules'),
     Field : r(BASE + 'field'),
-    FieldGroup : r(BASE + 'fieldgroup')
+    FieldGroup : r(BASE + 'fieldgroup'),
+    FlotSearch : r(BASE + 'flotSearch')
   });
   return Form;
 });
@@ -22863,6 +23349,269 @@ define('bui/form/remote',['bui/common'],function(require) {
   Remote.View = RemoteView;
   return Remote;
 });/**
+ * @fileoverview \u6536\u7f29\u7684\u6d6e\u52a8\u67e5\u8be2
+ * @author  qyy&bili 
+ * @date 2019-06-02
+ * @ignore
+ */
+define('bui/form/flotSearch',[
+									'bui/common',
+									'bui/form/search/searchFloatForm',
+									'bui/form/search/flotSearchText'
+								   ],function(r){
+	var BUI = r('bui/common'),
+		Component = BUI.Component,
+	    SearchText = r('bui/form/search/flotSearchText');
+		SearchFloatForm = r('bui/form/search/searchFloatForm');
+	 /**
+	   * \u53ef\u6536\u7f29\u7684\u6d6e\u52a8\u67e5\u8be2
+	   * <pre><code>
+	   *   BUI.use('bui/form/flotSearch',function(flotSearch){
+	   *    var search = new flotSearch({
+		       items : [{
+			  				label : '\u5de5\u5355\u540d\u79f0',
+			  				item : '&lt;input type="text" name="orderName" id="taskNameSerach" style="width: 157px;" /&gt;'
+				  			},{
+				  				label : '\u8c03\u5ea6\u5de5\u5355\u6587\u53f7',
+				  				item : '&lt;input type="text" name="orderNumber" id="orderNumberSerach" style="width: 157px;" /&gt;'
+				  			}]
+		     });
+		     search.render();
+	   *   });
+	   * </code></pre>
+	   * @class BUI.Form.FlotSearch
+	   * @extends BUI.Component.Controller
+	   */
+	var flotSearch = Component.Controller.extend({
+		initializer:function(){
+			var _self = this;
+			 //\u521d\u59cb\u5316\u67e5\u8be2\u5185\u5bb9\u56de\u663e
+            var searchText = new SearchText({ id: 'searchText' });
+            //\u521d\u59cb\u5316\u67e5\u8be2\u6846
+			var searchForm = new SearchFloatForm({
+				id:'searchForm',
+				items:_self.get('items')
+			});
+			//\u67e5\u8be2\u67e5\u8be2\u6846\u906e\u7f69\u5c42
+			var searchMask = new Component.Controller({
+				   id:'searchMask',
+				   elCls:'searchMask'
+			});
+		    _self.addChild(searchText);
+			_self.addChild(searchMask);
+			_self.addChild(searchForm);
+		},
+		bindUI : function(){
+			var _self = this
+			,searchForm = _self.getChild('searchForm')
+			,searchMask = _self.getChild('searchMask')
+			,text = _self.getChild('searchText');
+			searchForm.hide();
+			searchMask.hide();
+			//\u6d6e\u52a8\u67e5\u8be2\u8868\u5355\u67e5\u8be2\u4e8b\u4ef6\uff0c\u56de\u663e\u67e5\u8be2\u5185\u5bb9
+            text.on('click',function(){
+            	searchForm.show();
+				searchMask.show();
+            });
+            //\u906e\u7f69\u5c42\u70b9\u51fb\u4e8b\u4ef6\uff0c\u70b9\u51fb\u67e5\u8be2\u6846\u548c\u906e\u7f69\u5c42\u6d88\u5931
+			searchMask.on('click',function(){
+				searchForm.hide();
+				searchMask.hide();
+			});
+			//\u67e5\u8be2\u6846\u67e5\u8be2\u4e8b\u4ef6
+			_self.on('formSearch',function(e){
+				text.setItems(e.labels);
+			});
+		},
+		/**
+		 * \u9690\u85cf\u67e5\u8be2\u6d6e\u52a8\u8868\u5355
+		 */
+		hideSearchForm:function(){
+			var _self = this
+			,searchForm = _self.getChild('searchForm')
+			,searchMask = _self.getChild('searchMask');
+			searchForm.hide();
+			searchMask.hide();
+		},
+	},{
+		ATTRS:{
+			elAttrs :{value:{class : 'flotSearch'}},
+			/**
+             * \u67e5\u8be2\u6761\u4ef6\u5bf9\u8c61\u6570\u7ec4\uff0c\u5355\u4e2a\u5bf9\u8c61\u5c5e\u6027\u5982\u4e0b\uff1a
+             * <pre>
+             * &#123; 
+             * label: \u67e5\u8be2\u6761\u4ef6\u6807\u9898
+             * item: '&lt;input type="text" name="orderName" id="taskNameSerach" style="width: 157px;" /&gt;' \u67e5\u8be2\u6761\u4ef6\u8868\u5355\u5185\u5bb9, 
+             * &#125;
+             * </pre>
+             * @cfg {Object[]}
+             */
+			items : {value : []},
+			events: {value: {
+					 /**
+	                 * \u67e5\u8be2\u4e8b\u4ef6\uff0c\u6b64\u4e8b\u4ef6\u4f1a\u5192\u6ce1
+	                 * @event
+	                 * @param {Object} e \u4e8b\u4ef6\u5bf9\u8c61
+	                 * @param {Object} e.param \u67e5\u8be2\u8868\u5355\u7684\u5e8f\u5217\u5316\u5bf9\u8c61
+	                 * @param {jQuery.Event} e.domEvent DOM\u89e6\u53d1\u7684\u4e8b\u4ef6
+	                 * @param {HTMLElement} e.domTarget \u89e6\u53d1\u4e8b\u4ef6\u7684DOM\u8282\u70b9
+	                 */
+					'formSearch': true,
+					 /**
+	                 * \u67e5\u8be2\u6761\u4ef6\u91cd\u7f6e\u4e8b\u4ef6\uff0c\u6b64\u4e8b\u4ef6\u4f1a\u5192\u6ce1
+	                 * @event
+	                 * @param {Object} e \u4e8b\u4ef6\u5bf9\u8c61
+	                 * @param {Object} e.param \u67e5\u8be2\u8868\u5355\u7684\u5e8f\u5217\u5316\u5bf9\u8c61
+	                 * @param {jQuery.Event} e.domEvent DOM\u89e6\u53d1\u7684\u4e8b\u4ef6
+	                 * @param {HTMLElement} e.domTarget \u89e6\u53d1\u4e8b\u4ef6\u7684DOM\u8282\u70b9
+	                 */
+					'formReset' : true,
+				}
+			}
+		}
+	});
+	return flotSearch;
+});
+define('bui/form/search/flotSearchText',['bui/list'],function(r){
+    var List = r('bui/list');
+    return List.SimpleList.extend({
+        initializer: function(){
+            var _self = this;
+        },
+    },{
+        ATTRS:{
+            tpl:{
+                value:'<div class="row-fluid"><ul class="breadcrumb"><li><i class="icon-search"></i><span class="divider"> </span></li></ul></div>',
+                childContainer: 'ul'
+            },
+            itemTpl:{
+                value:'<li class="active"><b>{label}</b>{value}<span class="divider">/</span></li>'
+            },
+            items:{}
+        }
+    })
+})/**
+ * \u6d6e\u52a8\u67e5\u8be2\u6846 
+ */
+define('bui/form/search/searchFloatForm',['bui/common',
+									'bui/form/horizontal',
+								   ],function(r){
+	var BUI = r('bui/common'),
+		Component = BUI.Component,
+		HForm = r('bui/form/horizontal');
+	var SearchForm = HForm.extend({
+		initializer:function(){
+			var _self = this;
+			var items = _self.get('items');
+			var formItems = [];
+			BUI.Array.each(_self.get('items'),function(i){
+				formItems.push(_self._geItem(i.label,i.item));
+			});
+			var leftChild = new Component.Controller({
+				id:"leftChildren",
+				elCls : 'row-fluid',
+				children : formItems
+			})
+			_self.addChild(leftChild);
+			_self.addChild(_self._geButton());
+		},
+		/*
+		 * \u83b7\u53d6\u586b\u5199\u7684\u67e5\u8be2\u6761\u4ef6\u6570\u636e
+		 */
+		_getLabelOfItems:function(){
+			var _self = this;
+			var labelValueArr = [];
+			var leftChildren = _self.getChild('leftChildren').get('children');
+			for(var i =0 ;i<leftChildren.length;i++){
+				var leftChild = leftChildren[i];
+				var label = leftChild.get('el').find('.control-label').text();
+				var items = leftChild.get('el').find('.controls').children();
+				var itemValueArr = []; 
+				for(var j = 0;j<items.length;j++){
+					var value = items[j].value?items[j].value.trim():"";
+					value?itemValueArr.push(value):''; 
+				}  
+				if(itemValueArr.length==0) continue;
+				var itemValue = itemValueArr.join(" ");
+				labelValueArr.push({
+					label:label,
+					value:itemValue
+				});
+			}
+			return labelValueArr;
+		},
+		bindUI : function(){
+			var _self = this;
+			//\u56de\u8f66\u53d1\u8d77\u67e5\u8be2
+			_self.get('el').keypress(function(ev){
+				if(ev.keyCode == 13){
+					ev.preventDefault();
+					_self.fire('formSearch',{
+						param : _self.serializeToObject(),
+						labels :_self._getLabelOfItems(),
+						domTarget: ev.domTarget,
+				        domEvent: ev
+					});
+				}
+			})
+			//\u67e5\u8be2\u4e8b\u4ef6
+			_self.get('el').delegate('.searchBtn','click',function(ev){
+				ev.preventDefault();
+				_self.fire('formSearch',{
+					param : _self.serializeToObject(),
+					labels :_self._getLabelOfItems(),
+					domTarget: ev.domTarget,
+			        domEvent: ev
+				});
+			});
+			//\u91cd\u7f6e\u4e8b\u4ef6
+			_self.get('el').delegate('.resetBtn','click',function(ev){
+				ev.preventDefault();
+				_self.get('el').get(0).reset();
+				_self.fire('formReset',{
+					param : _self.serializeToObject(),
+					labels :_self._getLabelOfItems(),
+					domTarget: ev.domTarget,
+			        domEvent: ev
+				});
+			});
+		},
+		/*
+		 * \u751f\u6210\u4e00\u4e2a\u67e5\u8be2\u6761\u4ef6
+		 */
+		_geItem:function(label,item){
+			var _self = this;
+			var i = new Component.Controller({
+				elCls : 'control-group pull-left',	
+				tpl:'<label class="control-label">'+label+'\uff1a</label>'+
+					'<div class="controls"  style="height:43px">'+
+					 item +
+					'</div>'
+			});
+			return i;
+		},
+		_geButton:function(){
+			var b = new Component.Controller({
+				tpl:'<center><button type="button" class="button button-primary searchBtn">\u67e5\u8be2</button>&nbsp;&nbsp;'
+						+'<button type="button" class="button resetBtn">\u91cd\u7f6e</button></center>',
+			    elStyle : {margin: '0 0 15px 0'}
+			});
+			return b;
+		},
+	},{
+		ATTRS:{
+			elAttrs :{value:{id : 'searchFloatForm'}},
+			items : {value : []},
+			events: {value: {
+					'formSearch': true,
+					'formReset' : true
+				}
+			}
+		}
+	});
+	return SearchForm;
+});
+/**
  * @fileOverview \u9009\u62e9\u6846\u547d\u540d\u7a7a\u95f4\u5165\u53e3\u6587\u4ef6
  * @ignore
  */
@@ -26613,18 +27362,21 @@ define('bui/tab/tabpanel',['bui/common','bui/tab/tab','bui/tab/panels'],function
  * @ignore
  */
 
-define('bui/toolbar',['bui/common','bui/toolbar/baritem','bui/toolbar/bar','bui/toolbar/pagingbar','bui/toolbar/numberpagingbar'],function (require) {
+define('bui/toolbar',['bui/common','bui/toolbar/baritem','bui/toolbar/breadcrumb','bui/toolbar/bar','bui/toolbar/pagingbar','bui/toolbar/numberpagingbar'],function (require) {
   var BUI = require('bui/common'),
     Toolbar = BUI.namespace('Toolbar');
 
   BUI.mix(Toolbar,{
     BarItem : require('bui/toolbar/baritem'),
     Bar : require('bui/toolbar/bar'),
+    Breadcrumb : require('bui/toolbar/breadcrumb'),
     PagingBar : require('bui/toolbar/pagingbar'),
-    NumberPagingBar : require('bui/toolbar/numberpagingbar')
+    NumberPagingBar : require('bui/toolbar/numberpagingbar'),
+    Steps : require('bui/toolbar/steps')
   });
   return Toolbar;
-});/**
+});
+/**
  * @fileOverview buttons or controls of toolbar
  * @author dxq613@gmail.com, yiminghe@gmail.com
  * @ignore
@@ -26972,6 +27724,552 @@ define('bui/toolbar/bar',function(){
 	});
 
 	return Bar;
+});/**
+ * @fileOverview \u9762\u5305\u5c51\u7ec4\u4ef6
+ * @author roysong
+ */
+define('bui/toolbar/breadcrumb',['bui/common','bui/list'],function(require){
+
+	var BUI = require('bui/common'),
+		UIBase = BUI.Component.UIBase,
+		Component = BUI.Component,
+		UIBase = Component.UIBase,
+		DomList = require('bui/list').DomList,
+		CLS_ITEM = BUI.prefix + 'breadcrumb-item';
+		
+	/**
+	 * breadcrumb\u7684\u89c6\u56fe\u7c7b
+	 * @class BUI.Toolbar.BreadcrumbView
+	 * @extends BUI.Component.View
+	 * @private
+	 */
+	var breadcrumbView = Component.View.extend([DomList.View],{
+
+		renderUI:function() {
+			var el = this.get('el');
+      if (!el.attr('id')) {
+          el.attr('id', BUI.guid('breadcrumb'));
+      }
+		}
+	},{
+    ATTRS : {
+      itemContainer : {
+        valueFn : function(){
+          return this.get('el').find(this.get('breadcrumSelector'));
+        }
+      }
+    }
+  },{
+    xclass:'breadcrum-view'
+  });
+
+	/**
+	 * \u9762\u5305\u5c51
+   * xclass : 'breadcrumb'
+	 * ## \u663e\u793a\u52a8\u6001\u6570\u636e\u6e90\u7684\u6570\u636e
+   * <pre><code>
+	 *&lt;div id="form"&gt;
+	 *&lt;/div&gt;
+	 *&lt;div&gt;
+	 *	&lt;button id="addDic"&gt;\u589e\u52a0\u4e00\u7ea7\u76ee\u5f55&lt;/button&gt;
+	 *	&lt;button id="deleteDic"&gt;\u5220\u9664\u4e00\u7ea7\u76ee\u5f55&lt;/button&gt;
+	 *	&lt;button id="resetDic"&gt;\u91cd\u7f6e\u76ee\u5f55&lt;/button&gt;
+	 *&lt;/div&gt;
+	 *&lt;script type="text/javascript"&gt;
+	 *	BUI.use(['bui/toolbar/breadcrumb','bui/data'],function(Breadcrumb,Data){
+	 *		var defaultDicData = {id : '-3954',name : '\u4e3b\u76ee\u5f55'};
+	 *		var store = new Data.Store({
+	 *			data : [defaultDicData]
+	 *		});
+	 *		var bc = new Breadcrumb({
+	 *			render : '#form',
+	 *			store : store
+	 *		});
+	 *		bc.render();
+	 *		var index = 1;
+	 *		$('#addDic').click(function(){
+	 *			store.add({id : index,name : '\u76ee\u5f55' + index});
+	 *			index++;
+	 *		});
+	 *		$('#deleteDic').click(function(){
+	 *			store.remove(store.findByIndex(store.getCount() - 1));
+	 *		});
+	 *		$('#resetDic').click(function(){
+	 *			store.setResult([defaultDicData]);	
+	 *		})
+	 *		bc.on('jumpToDirectory',function(e){
+	 *			console.log(e.dic)
+	 *		})
+	 *	});
+	 *&lt;/script&gt;
+   * </code></pre>
+   * @class BUI.Toolbar.Breadcrumb
+   * @extends BUI.Component.Controller
+   * @mixins BUI.Component.UIBase.Bindable BUI.List.DomList
+   */
+	var Breadcrumb = Component.Controller.extend([UIBase.Bindable,DomList],	
+	{
+		bindUI : function(){
+			var _self = this,
+				store = _self.get('store');
+				_self.on('itemclick',function(e){
+					var item = e.item,
+						itemIdx = _self.indexOfItem(item);
+					// \u70b9\u51fb\u67d0\u4e2a\u5b50\u9879\u65f6\uff0c\u5e72\u6389\u6b64\u5b50\u9879\u4ee5\u540e\u7684\u6240\u6709\u5b50\u9879	
+					if((itemIdx + 1) < store.getCount()){//\u5f53\u70b9\u51fb\u7684\u5b50\u9879\u4e0d\u662f\u6700\u540e\u4e00\u9879\u65f6\uff0c\u624d\u6267\u884c\u5e72\u6389\u540e\u9762\u5b50\u9879\u7684\u64cd\u4f5c
+						var	records = store.getResult(),
+							newRecords = records.slice(0,itemIdx + 1);
+						store.setResult(newRecords);
+					}
+					// \u629b\u51fa\u81ea\u5b9a\u4e49\u4e8b\u4ef6
+					_self.fire("jumpToDirectory",{					
+						dic : item
+					});
+				});
+		},
+		/**
+		* \u6dfb\u52a0
+  	* @protected
+  	*/
+  	onAdd : function(e){
+  	  var _self = this,
+  	    store = _self.get('store'),
+  	    item = e.record;
+  	  if(_self.getCount() == 0){ //\u521d\u59cb\u4e3a\u7a7a\u65f6\uff0c\u5217\u8868\u8ddfStore\u4e0d\u540c\u6b65
+  	    _self.setItems(store.getResult());
+  	  }else{
+  	    _self.addItemToView(item,e.index);
+  	  }
+  	},
+  	/**
+  	 * \u5220\u9664
+  	* @protected
+  	*/
+  	onRemove : function(e){
+  	  var _self = this,
+  	    item = e.record;
+  	  _self.removeItem(item);
+  	},
+  	/**
+  	 * \u52a0\u8f7d\u6570\u636e
+  	 * @protected
+  	 */
+  	onLoad:function(){
+  	  var _self = this,
+  	    store = _self.get('store'),
+  	    items = store.getResult();
+  	  _self.set('items',items);
+  	}
+	},{
+		ATTRS:
+		{
+			events : {
+				value : {
+					/**\u70b9\u51fb\u9762\u5305\u5c51\u4e2d\u67d0\u5b50\u9879\uff0c\u5176\u540e\u5b50\u9879\u5168\u90e8\u6d88\u5931\uff0c\u5e76\u629b\u51fa\u6b64\u4e8b\u4ef6
+           * @event
+           * @name BUI.Toolbar.Breadcrumb#jumpToDirectory
+           * @param {Object} e \u70b9\u51fb\u4e8b\u4ef6
+           * @param {Object} e.dic store\u4e2d\u7684\u5355\u9879\u6570\u636e
+           */
+          'jumpToDirectory' : true
+				}
+			},
+			/**
+       * \u6392\u5e8f\u7684\u65f6\u5019\u662f\u5426\u76f4\u63a5\u8fdb\u884cDOM\u7684\u6392\u5e8f\uff0c\u4e0d\u91cd\u65b0\u751f\u6210DOM\uff0c<br>
+       * \u5728\u53ef\u5c55\u5f00\u7684\u8868\u683c\u63d2\u4ef6\uff0cTreeGrid\u7b49\u63a7\u4ef6\u4e2d\u4e0d\u8981\u4f7f\u7528\u6b64\u5c5e\u6027
+       * @type {Boolean}
+       * cfg {Boolean} frontSortable
+       * @ignore
+       */
+      frontSortable : {
+        value : false
+      },
+			/**
+			* \u83b7\u53d6\u7126\u70b9
+      * @protected
+      * @ignore
+			*/
+			focusable : {
+				value : false
+			},
+			/**
+       * \u9009\u9879\u96c6\u5408
+       * @protected
+       * @type {Array}
+       */
+      items : {
+        view:true,
+        value : []
+      },
+			/**
+       * \u9009\u9879\u7684\u6837\u5f0f\uff0c\u7528\u6765\u83b7\u53d6\u5b50\u9879
+       * <pre><code>
+       * var breadcrumb = new Toolbar.Breadcrumb({
+       *   render : '#t1',
+       *   itemCls : 'my-item', //\u81ea\u5b9a\u4e49\u6837\u5f0f\u540d\u79f0
+       *   items : [{id : '1',name : '1'},{id : '2',name : '2'}]
+       * });
+       * breadcrumb.render();
+       * </code></pre>
+       * @cfg {Object} [itemCls='breadcrumb-item']
+       */
+      itemCls : {
+        view:true,
+        value : CLS_ITEM
+			},
+			/**
+       * \u9009\u9879\u7684\u9ed8\u8ba4id\u5b57\u6bb5
+       * <pre><code>
+       * var breadcrumb = new Toolbar.Breadcrumb({
+       *   render : '#t1',
+       *   idField : 'id', //\u81ea\u5b9a\u4e49\u9009\u9879 id \u5b57\u6bb5
+       *   items : [{id : '1',name : '1'},{id : '2',name : '2'}]
+       * });
+       * breadcrumb.render();
+       *
+       * breadcrumb.getItem('1'); //\u4f7f\u7528idField\u6307\u5b9a\u7684\u5b57\u6bb5\u8fdb\u884c\u67e5\u627e
+       * </code></pre>
+       * @cfg {String} [idField = 'id']
+       */
+      idField : {
+        value : 'id'
+      },
+      /**
+       * \u9762\u5305\u5c51\u7684\u9009\u62e9\u5668\uff0c\u5c06\u9762\u5305\u5c51\u5b50\u9879\u9644\u52a0\u5230\u6b64\u8282\u70b9
+       * @protected
+       * @type {Object}
+       */
+      breadcrumSelector:{
+        view:true,
+        value:'ul'
+      },
+      /**
+       * \u5217\u8868\u9879\u7684\u9ed8\u8ba4\u6a21\u677f\u3002
+       * @ignore
+       */
+      
+      itemTpl :{
+        view : true,
+        value : '<li class="' + CLS_ITEM + '"><a href="#">{name}</a> <span class="divider">/</span></li>'
+			},
+			tpl : {
+        value:'<ul class="breadcrumb" style="margin:0;"></ul>'
+      },
+			/**
+			* @private
+      * @ignore
+			*/
+			xview : {
+				value : breadcrumbView	
+			}
+		}
+	},{
+		xclass : 'breadcrumb',
+		priority : 1	
+	});
+	Breadcrumb.view = breadcrumbView;
+	return Breadcrumb;
+});/**
+ * @fileoverview \u6b65\u9aa4\u6761\u7ec4\u4ef6
+ * @author bili
+ * @date 190518
+ */
+// seajs.use('steps.css');
+define('bui/toolbar/steps', [
+    'bui/common',
+    'bui/list'
+], function (r) {
+    var BUI = r('bui/common'),
+        List = r('bui/list');
+    /**
+	 * steps\u7684\u89c6\u56fe\u7c7b
+	 * @class BUI.Toolbar.StepsView
+	 * @extends BUI.List.SimpleListView
+	 * @private
+	 */
+    var StepsView = List.SimpleListView.extend({
+        renderUI: function () {
+            var el = this.get('el');
+            if (!el.attr('id')) {
+                el.attr('id', BUI.guid('steps'));
+            }
+        }
+    }, {
+            ATTRS: {
+            }
+        }, {
+            xclass: 'steps-view'
+        });
+    /**
+     * \u6b65\u9aa4\u6761
+     * xclass : 'steps'
+     * ## \u9759\u6001\u5c55\u793a\uff0c\u53ea\u5728item\u4e2d\u8bbe\u7f6e\u72b6\u6001
+     * \u6bcf\u4e2aitem\u8bbe\u7f6e\u4e0d\u540c\u7684\u72b6\u6001\u8fdb\u884c\u5c55\u793a
+     *{@img step-demo1.png demo1}
+     * <pre>
+     * <code>
+     * BUI.use('bui/toolbar', function (Toolbar) {
+            var setps = new Toolbar.Steps({
+                 items:[
+                    {title:'\u6b65\u9aa41',description:'\u6b65\u9aa41\u8be6\u60c5',status:'error'},
+                    {title:'\u6b65\u9aa42',description:'&lt;p&gt;\u6b65\u9aa42\u8be6\u60c5&lt;/p&gt;&lt;p style="color:red;"&gt;\u6b65\u9aa42\u8be6\u60c5&lt;/p&gt;&lt;p&gt;\u6b65\u9aa42\u8be6\u60c5&lt;/p&gt;',status:'finish'},
+                    {title:'\u6b65\u9aa43',description:'\u6b65\u9aa43\u8be6\u60c5',status:'process'},
+                    {title:'\u6b65\u9aa44',description:'\u6b65\u9aa44\u8be6\u60c5',status:'wait'},
+                ]
+            });
+            setps.render();
+        });
+     * </code>
+     * </pre>
+     * ## \u8bbe\u7f6e\u6b65\u9aa4\u6761\u7684\u5f53\u524d\u6b65\u9aa4\u548c\u5f53\u524d\u6b65\u9aa4\u72b6\u6001
+     * \u4e0d\u7528\u5355\u72ec\u8bbe\u7f6eitem\u7684\u72b6\u6001\uff0c\u6b65\u9aa4\u6761\u4f1a\u6839\u636e\u4f20\u5165\u7684current\u548cstatus\u8fdb\u884c\u6e32\u67d3,\u540c\u65f6\u4e0d\u5c55\u793aicon
+     * {@img step-demo2.png demo2}
+     * <pre>
+     * <code>
+     * BUI.use('bui/toolbar', function (Toolbar) {
+            var setps = new Toolbar.Steps({
+                items:[
+                    {title:'\u6b65\u9aa41',description:'\u6b65\u9aa41\u8be6\u60c5'},
+                    {title:'\u6b65\u9aa42',description:'\u6b65\u9aa42\u8be6\u60c5'},
+                    {title:'\u6b65\u9aa43',description:'\u6b65\u9aa43\u8be6\u60c5'},
+                    {title:'\u6b65\u9aa44',description:'\u6b65\u9aa44\u8be6\u60c5'},
+                ],
+                current:3,
+                status:'error',
+                showIcon:false
+            });
+            setps.render();
+        });
+     * </code>
+     * </pre>
+     * ## \u81ea\u5b9a\u4e49\u6bcf\u4e2aitem\u7684icon
+     * \u5982\u9700\u8bbe\u7f6e\u5f53\u524d\u6b65\u9aa4\uff0c\u63a8\u8350\u5f53\u524d\u6b65\u9aa4\u72b6\u6001\u8bbe\u7f6e\u4e3afinish
+     * {@img step-demo3.png demo3}
+     * <pre>
+     * <code>
+     * var setps2 = new Toolbar.Steps({
+            items:[
+                {title:'\u6b65\u9aa41',description:'\u6b65\u9aa41\u8be6\u60c5',icon:'icon-search'},
+                {title:'\u6b65\u9aa42',description:'\u6b65\u9aa42\u8be6\u60c5',icon:'icon-camera'},
+                {title:'\u6b65\u9aa43',description:'\u6b65\u9aa43\u8be6\u60c5',icon:'icon-user'},
+                {title:'\u6b65\u9aa44',description:'\u6b65\u9aa44\u8be6\u60c5',icon:'icon-calendar'},
+            ],
+            current:3,
+            status:'finish'
+        });
+     * </code>
+     * </pre>
+     * @class BUI.Toolbar.Steps
+     * @extends BUI.List.SimpleList
+     */
+    var Steps = List.SimpleList.extend({
+        initializer: function () {
+            var _self = this;
+            _self.set('items', _self._formatItems());
+        },
+        /**
+         * \u683c\u5f0f\u5316\u4f20\u5165\u7684item\uff0c\u628astring\u8f6c\u6362\u4e3a\u6240\u9700\u5bf9\u8c61
+         * @private
+         */
+        _formatItems: function () {
+            var _self = this,
+                items = _self.get('items'),
+                tmp = [];
+            BUI.each(items, function (v, i) {
+                tmp.push(_self._formatItem(v, i));
+                if(v.status == 'error' && items[i-1]){//\u9519\u8bef\u72b6\u6001\u7684\u4e0a\u4e00\u6b65\u589e\u52a0css,\u5982\u4fee\u6539\u8fde\u7ebf\u989c\u8272
+                    items[i-1].status += ' steps-next-error';
+                }
+                if(v.status == 'finish' && items[i-1]){//\u5b8c\u6210\u72b6\u6001\u7684\u4e0a\u4e00\u6b65\u589e\u52a0css\uff0c\u5982\u4fee\u6539\u8fde\u7ebf\u989c\u8272
+                    items[i-1].status += ' steps-next-finish';
+                }
+                if(v.status == 'process' && items[i-1]){//\u5b8c\u6210\u72b6\u6001\u7684\u4e0a\u4e00\u6b65\u589e\u52a0css\uff0c\u5982\u4fee\u6539\u8fde\u7ebf\u989c\u8272
+                    items[i-1].status += ' steps-next-process';
+                }
+            });
+            return tmp;
+        },
+        /**
+         * \u683c\u5f0f\u5316\u5355\u4e2astring\u4e3aitemObject
+         * @param {string} v \u9700\u8981\u8f6c\u6362\u7684\u5b57\u7b26\u4e32
+         * @param {number} i \u6570\u7ec4\u7d22\u5f15
+         * @private
+         */
+        _formatItem: function (v, i) {
+            var _self = this,showIcon = _self.get('showIcon');
+            var status = _self._getItemStatus(i,v.status);
+            v.status = status;
+            if(!showIcon){//\u4e0d\u5c55\u793aicon\u65f6
+                v.radius = 'steps-item-icon-radius';
+                v.icon = '';
+            }else if(showIcon && !v.icon){
+                v.radius = 'steps-item-icon-radius';
+                v.icon = i+1;
+            }else if(showIcon && v.icon){//\u9700\u8981\u5c55\u793aicon\uff0c\u4e14item\u4e2d\u914d\u7f6e\u4e86icon
+                v.radius = '';
+                v.icon = v.icon.indexOf('class')>=0?v.icon:'<i class="'+v.icon+'"></i>';
+            }
+            return v;
+        },
+        /**
+         * \u6839\u636e\u7d22\u5f15\u53f7\u8ba1\u7b97item\u7684class
+         * @param {number} index 
+         * @private
+         */
+        _getItemStatus: function (index,nowStatus) {
+            var _self = this, current = _self.get('current'), status = _self.get('status');
+            if (index == current - 1) {//\u8bbe\u7f6e\u4e86\u5f53\u524d\u6b65\u9aa4\u65f6\uff0c\u5f53\u524d\u72b6\u6001
+                return status ? status : 'process';
+            }
+            if (index < current - 1) {//\u8bbe\u7f6e\u4e86\u5f53\u524d\u6b65\u9aa4\u65f6\uff0c\u5176\u4ed6\u72b6\u6001
+                return 'finish'
+            }
+            if(!current){//\u672a\u8bbe\u7f6e\u5f53\u524d\u6b65\u9aa4\u65f6\uff0c\u6839\u636eitem\u7684\u88c5\u6001\u8fdb\u884c\u5c55\u793a
+                return nowStatus;
+            }
+        },
+        /**
+         * \u4fee\u6539current\uff0c\u91cd\u65b0\u6e32\u67d3\u6b65\u9aa4\u6761
+         * @param {number} \u5f53\u524d\u6b65\u9aa4 
+         */
+        setCurrent: function (item) {
+            var _self = this, current = -1;
+            _self.get('items').forEach(function (v, i) {
+                if (item == v) {
+                    current = i+1;
+                }
+            });
+            if (current > 0) {
+                _self.set('current', current);
+                _self.set('items', _self._formatItems());
+                _self.get('items').forEach(function (item) {
+                    _self.updateItem(item)
+                });
+            }
+        },
+        /**
+         * \u4fee\u6539\u5f53\u524d\u9009\u4e2d\u7684\u6b65\u9aa4\u6761
+         * @param {Object} item \u5f53\u524d\u70b9\u51fb\u7684\u5143\u7d20\uff0c\u4e00\u822c\u4f20\u5165\u4e3aitemclick\u4e8b\u4ef6\u7684e.item
+         */
+        setSelected: function (item) {
+            var _self = this,items = _self.get('items');
+            items.forEach(function(v){
+                if(v==item){
+                    v.selected = 'steps-item-selected';
+                }else{
+                    v.selected = '';
+                }
+            });
+            _self.set('items',items);
+            _self.get('items').forEach(function (item) {
+                _self.updateItem(item)
+            });
+        },
+        /**
+         * \u53d6\u6d88\u9009\u4e2d
+         * @param {Object} item \u5f53\u524d\u70b9\u51fb\u7684\u5143\u7d20\uff0c\u4e00\u822c\u4f20\u5165\u4e3aitemclick\u4e8b\u4ef6\u7684e.item
+         */
+        cancelSelected:function(item){
+            var _self = this,items = _self.get('items');
+            items.forEach(function(v){
+                if(v==item){
+                    v.selected = '';
+                }
+            });
+            _self.set('items',items);
+            _self.get('items').forEach(function (item) {
+                _self.updateItem(item)
+            });
+        }
+    }, {
+            ATTRS: {
+                /**
+                 * \u5217\u8868\u9879\u7684\u9ed8\u8ba4\u6a21\u677f\u3002
+                 * @ignore
+                 */
+                itemTpl: {
+                    view: true,
+                    value: '<li class="steps-item steps-item-{status} {selected}">' +
+                        '<div class="steps-item-icon {radius}">{icon}</div>' +
+                        '<div class="steps-item-content">' +
+                        '<div class="steps-item-title">{title}</div>' +
+                        '<div class="steps-item-description">{description}</div>' +
+                        '</div>' +
+                        '</li>'
+                },
+                /**
+                 *  @ignore
+                 */
+                idField: {
+                    value: 'index'
+                },
+                /**
+                 * \u7ec4\u4ef6\u7684\u9ed8\u8ba4\u6a21\u677f\u3002
+                 * @ignore
+                 */
+                tpl: {
+                    value: '<div class="step"><ul></ul></div>',
+                    childContainer: 'ul'
+                },
+                /**
+                 * \u5bf9\u8c61\u6570\u7ec4\uff0c\u5355\u4e2a\u5bf9\u8c61\u5c5e\u6027\u5982\u4e0b\uff1a
+                 * <pre>
+                 * &#123; 
+                 * status: \u6307\u5b9a\u72b6\u6001\u3002\u5f53\u4e0d\u914d\u7f6e\u8be5\u5c5e\u6027\u65f6\uff0c\u4f1a\u4f7f\u7528 Steps \u7684 current \u6765\u81ea\u52a8\u6307\u5b9a\u72b6\u6001\u3002
+                 *          \u53ef\u9009\uff1await \u672a\u6267\u884c
+                 *                process \u5904\u7406\u4e2d
+                 *                finish \u5df2\u5b8c\u6210
+                 *                error \u9519\u8bef
+                 * text: \u6807\u9898, 
+                 * description: \u6b65\u9aa4\u7684\u8be6\u60c5\u63cf\u8ff0\uff0c\u53ef\u9009, 
+                 * icon: \u6b65\u9aa4\u56fe\u6807\u7684\u7c7b\u578b\uff0c\u53ef\u9009 
+                 * &#125;
+                 * </pre>
+                 * @cfg {Object[]}
+                 */
+                items: {
+                    view: true,
+                    value: []
+                },
+                /**
+			     * @private
+                 * @ignore
+			     */
+                stepsOl: {
+                    view: true,
+                    value: 'ul'
+                },
+                /**
+                 * \u5f53\u524d\u6b65\u9aa4
+                 * @cfg {?number}
+                 */
+                current: {},
+                /**
+                 * \u5f53\u524d\u6b65\u9aa4\u72b6\u6001,\u9ed8\u8ba4\u4e3aprocess  
+                 * \u53ef\u9009\u9879\u4e3a\uff1a  
+                 *          wait \u672a\u6267\u884c  
+                 *          process \u5904\u7406\u4e2d  
+                 *          finish \u5df2\u5b8c\u6210  
+                 *          error \u9519\u8bef  
+                 * @cfg {?string}
+                 */
+                status: {},
+                /**
+                 * \u662f\u5426\u5c55\u793aicon\uff0c\u9ed8\u8ba4\u4e3atrue
+                 * @cfg{boolean}
+                 */
+                showIcon:{value:true},
+                /**
+			     * @private
+                 * @ignore
+			     */
+                xview: {
+                    value: StepsView
+                }
+            }
+        });
+    Steps.View = StepsView;
+    return Steps;
 });/**
  * @fileOverview  a specialized toolbar that is bound to a Grid.Store and provides automatic paging control.
  * @author dxq613@gmail.com, yiminghe@gmail.com
@@ -27686,6 +28984,589 @@ define('bui/toolbar/numberpagingbar',['bui/toolbar/pagingbar'],function(require)
     return NumberPagingBar;
 
 });/**
+ * @fileOverview \u56fe\u7247\u5c55\u793a\u7ec4\u4ef6
+ * @author zhengwm
+ * @date 190520
+ */
+define('bui/toolbar/image',['bui/common'],function(require){
+
+	var BUI = require('bui/common'),
+		Component = BUI.Component,
+		CLS_ITEM = BUI.prefix + 'image-item';
+	/**
+	 * \u56fe\u7247\u5c55\u793a
+	 * ##\u521b\u5efa\u5bf9\u8c61
+	 * <pre>
+	 * <code>
+	 * BUI.use(['bui/toolbar/image'],function(Image){
+		    var img = new Image({
+				render : '#j_layout',
+				src: 'E:/workspace/dks.png'
+			});
+			img.render();
+		});
+	 * </code>
+	 * </pre>
+	 * @class BUI.Toolbar.Image
+	 * @extends BUI.Component.Controller
+	 */
+	var Image = Component.Controller.extend({
+		initializer : function(){
+			var _self = this;
+			_self.set('elAttrs', {src: _self.get('src')});
+		}
+	},
+	{
+		ATTRS : {
+			/**
+			 * \u56fe\u7247\u8def\u5f84
+			 * @type {string}
+			 */
+			src : {value:''},	
+			 /**
+             * \u63a7\u4ef6\u5bbd\u5ea6
+             * <pre><code>
+             * new Control({
+             *   width : 100 // 100,'100px','10%'
+             * });
+             * </code></pre>
+             * @cfg {Number|String} width
+             */
+			 /**
+             * \u63a7\u4ef6\u5bbd\u5ea6
+             * <pre><code>
+             *  control.set('width',100);
+             *  control.set('width','100px');
+             *  control.set('width','10%');
+             * </code></pre>
+             * @type {Number|String}
+             */
+			width : {value : 100},
+			 /**
+             * \u63a7\u4ef6\u9ad8\u5ea6
+             * <pre><code>
+             * new Control({
+             *   height : 100 // 100,'100px','20%'
+             * });
+             * </code></pre>
+             * @cfg {Number|String} height
+             */
+            /**
+             * \u63a7\u4ef6\u9ad8\u5ea6
+             * <pre><code>
+             *  control.set('height',100);
+             *  control.set('height','100px');
+             *  control.set('height','10%');
+             * </code></pre>
+             * @type {Number|String}
+             */
+			height : {value : 100},
+			/**
+			 * \u63a7\u4ef6\u6839\u8282\u70b9\u4f7f\u7528\u7684\u6807\u7b7e\u4e3aimg
+			 * @protected
+			 */
+			elTagName : {
+				value : 'img'
+			},
+			/**
+             * \u63a7\u4ef6\u6839\u8282\u70b9\u5e94\u7528\u7684\u6837\u5f0f
+             * <pre><code>
+             *  new Control({
+             *   elCls : 'test',
+             *   src: 'E:/workspace/dks.png',
+             *   render : '#t1'   
+             *  });
+             * </code></pre>
+             * @cfg {String} elCls
+             */
+            /**
+             * \u63a7\u4ef6\u6839\u8282\u70b9\u5e94\u7528\u7684\u6837\u5f0f css class
+             * @type {String}
+             */
+			elCls : CLS_ITEM			
+		}
+	}
+	);
+	return Image;
+});/**
+ * \u6587\u5b57\u63cf\u8ff0\u7ec4\u4ef6
+ * @author zhengwm
+ * @date 190520
+ */
+define('bui/toolbar/commonLabel',	['bui/common'], function(require){
+	var BUI = require('bui/common'),
+	ELC_LABEL =  BUI.prefix + "common-label";
+	var CommonLabel = BUI.Component.Controller.extend({
+	},{
+		ATTRS : {
+			/**
+			 * \u63a7\u4ef6\u6839\u8282\u70b9\u4f7f\u7528\u7684\u6807\u7b7e\u4e3aimg
+			 * @protected
+			 */
+			elTagName  : {value : 'span'},
+			 /**
+             * @cfg {Object} elStyle
+			 * \u63a7\u4ef6\u6839\u8282\u70b9\u5e94\u7528\u7684css\u5c5e\u6027
+             *  <pre><code>
+             *    var cfg = {elStyle : {width:'100px', height:'200px'}};
+             *  </code></pre>
+             */
+            /**
+             * \u63a7\u4ef6\u6839\u8282\u70b9\u5e94\u7528\u7684css\u5c5e\u6027\uff0c\u4ee5\u952e\u503c\u5bf9\u5f62\u5f0f
+             * @type {Object}
+			 *  <pre><code>
+             *	 control.set('elStyle',	{
+             *		width:'100px',
+             *		height:'200px'
+             *   });
+             *  </code></pre>
+             */
+			elStyle : {value : {}},
+			/**
+             * \u63a7\u4ef6\u6839\u8282\u70b9\u5e94\u7528\u7684\u6837\u5f0f
+             * <pre><code>
+             *  new Control({
+             *   elCls : 'test',
+             *   content : '\u5185\u5bb9',
+             *   render : '#t1'   //&lt;div id='t1'&gt;&lt;div class="test"&gt;\u5185\u5bb9&lt;/div&gt;&lt;/div&gt;
+             *  });
+             * </code></pre>
+             * @cfg {String} elCls
+             */
+            /**
+             * \u63a7\u4ef6\u6839\u8282\u70b9\u5e94\u7528\u7684\u6837\u5f0f css class
+             * @type {String}
+             */
+			elCls : {value : ELC_LABEL},
+			/**
+			* \u63a7\u4ef6\u7684\u6a21\u7248\uff0c\u7528\u4e8e\u521d\u59cb\u5316
+			* <pre><code>
+			* var label = new CommonLabel({
+			*   tpl : '&lt;span &gt;{text}&lt/div&gt;',
+			*   text : 'test'
+			* });
+			* list.render();
+			* </code></pre>
+			* @cfg {String} tpl
+			*/
+			/**
+			 * \u63a7\u4ef6\u7684\u6a21\u677f
+			 * <pre><code>
+			 *   list.set('tpl','&lt;span &gt;{text}&lt/div&gt;')
+			 * </code></pre>
+			 * @type {String}
+			 */
+			tpl : {value : '{text}'},
+			/**
+			 * \u6587\u672c\u63cf\u8ff0
+			 * @type {string}
+			 * @cfg {String} text
+			 */
+			text : {}
+		}
+	});
+	return CommonLabel;
+});/**
+ * @fileOverview \u4e0a\u56fe\u7247\u4e0b\u6587\u5b57\u5c55\u793a\u7ec4\u4ef6
+ * @author zhengwm
+ * @date 190520
+ */
+define('bui/toolbar/portalItem',['bui/common', 'bui/list', 'bui/toolbar/image', 'bui/toolbar/commonLabel'],function(require){
+
+	var BUI = require('bui/common'),
+		Component = BUI.Component,
+		List = require('bui/list'),
+		Image = require('bui/toolbar/image'),
+		CommonLabel = require('bui/toolbar/commonLabel'),
+		ELC_ITEM = BUI.prefix + 'portal-item';
+	/**
+	 * \u4e0a\u56fe\u7247\u4e0b\u6587\u5b57\u63cf\u8ff0
+	 * ##\u5355\u6587\u5b57\u663e\u793a
+	 * <pre>
+	 * <code>
+	 * BUI.use(['bui/toolbar/portalItem'],function(PortalItem){
+			var pi = new PortalItem({
+				render : '#j_toolbar',
+				item : {type:'1', elStyle:{'width':200}, singleText:{text:'\u8f66\u95f4\u7528\u6237', elStyle:{'color':'red'}}}
+			});
+			pi.render();
+			pi.on('itemClick', function(e){
+				console.log(e.item);
+			});
+		});
+	 * </code>
+	 * </pre>
+	 * ##\u591a\u884c\u6587\u5b57\u663e\u793a
+	 * <pre>
+	 * <code>
+	 * BUI.use(['bui/toolbar/portalItem'],function(PortalItem){
+			var pi = new PortalItem({
+				render : '#j_toolbar',
+				item : {type:'2',  multiText: [{text:'\u661f\u671f\u4e09'},{text:'21', elStyle:{'font-size':40}}]}
+			});
+			pi.render();
+			pi.on('itemClick', function(e){
+				console.log(e.item);
+			});
+		});
+	 * </code>
+	 * </pre>
+	 * ##\u5355\u56fe\u7247\u663e\u793a
+	 * <pre>
+	 * <code>
+	 * BUI.use(['bui/toolbar/portalItem'],function(PortalItem){
+			var pi = new PortalItem({
+				render : '#j_toolbar',
+				item : {type:'3',src:'E:/bui/55/cj.png', elStyle:{'background-color':'red'}}
+			});
+			pi.render();
+			pi.on('itemClick', function(e){
+				console.log(e.item);
+			});
+		});
+	 * </code>
+	 * </pre>
+	 * ##\u56fe\u7247\u548c\u6587\u5b57\u663e\u793a
+	 * <pre>
+	 * <code>
+	 * BUI.use(['bui/toolbar/portalItem'],function(PortalItem){
+			var pi = new PortalItem({
+				render : '#j_toolbar',
+				item : {type:'4',src:'E:/bui/55/gq.png', singleText:{text: '\u5de5\u533a\u7528\u6237'}}
+			});
+			pi.render();
+			pi.on('itemClick', function(e){
+				console.log(e.item);
+			});
+		});
+	 * </code>
+	 * </pre>
+	 * @class BUI.Toolbar.PortalItem
+	 * @extends BUI.Component.Controller
+	 */
+	var PortalItem = Component.Controller.extend({
+		initializer : function(){
+			var _self = this;
+			var item = _self.get('item');
+			if(item.src !=undefined && item.src !='' ) {
+				//\u6dfb\u52a0\u56fe\u7247
+				_self.addChild(_self._createImage());
+			}
+			if((item.singleText !=undefined && item.singleText != null) || (item.multiText !=undefined && item.multiText !=null)) {
+				//\u6dfb\u52a0\u6587\u5b57\u63cf\u8ff0
+				_self.addChild(_self._createLabel());
+			}
+		},
+		/**
+		 * \u521b\u5efa\u56fe\u7247\u5bb9\u5668
+		 * @protected
+		 */
+		_createImage : function() {
+			var _self = this;
+			var image =  new Image({
+				id : 'portal_image',
+				src : _self.get('item').src
+			});
+			var imgContainer  = new Component.Controller({
+				id : 'imgContainer',
+				width : '100%'
+			});
+			imgContainer.addChild(image);
+			return imgContainer;
+		},	
+		/**
+		 * \u521b\u5efa\u6587\u5b57\u63cf\u8ff0\u5bb9\u5668
+		 * @protected
+		 */
+		_createLabel : function() {
+			var _self = this, item = _self.get('item');
+			var labelContainer  = new Component.Controller({
+				id : 'labelContainer',
+				width : '100%'
+			});
+			var singleText = item.singleText;
+			var multiText = item.multiText;
+			if(singleText){//\u5355\u884c\u6587\u5b57\u76f4\u63a5new\u4e00\u4e2a\u6587\u672c\u5bf9\u8c61
+				var label = new CommonLabel({
+					text : singleText.text,
+					elStyle : singleText.elStyle
+				});
+				labelContainer.addChild(label);
+			} else {//\u591a\u884c\u6587\u5b57\u901a\u8fc7list\u5bb9\u5668\u5bf9\u6587\u672c\u5bf9\u8c61\u8fdb\u884c\u52a0\u8f7d
+				var list = new List.List();
+				BUI.Array.each(multiText,function(mt){
+					var listItem = new List.ListItem({
+						elStyle : {'margin-bottom' : '10px'},
+						tpl:''
+					});
+					var label = new CommonLabel({
+						text : mt.text,
+						elStyle : mt.elStyle
+					});
+					listItem.addChild(label);
+					list.addChild(listItem);					
+				});
+				labelContainer.addChild(list);
+			}
+			return labelContainer;
+		},
+		renderUI : function() {
+			var _self = this,imgContainer=_self.getChild('imgContainer', true),labelContainer=_self.getChild('labelContainer', true),
+			portal_image = _self.getChild('portal_image', true);
+			if(imgContainer && labelContainer){
+				//\u8ba1\u7b97\u56fe\u7247\u7684\u9ad8\u5ea6\u548c\u6587\u5b57\u7684\u9ad8\u5ea6
+				imgContainer.set('height', _self.get('height')/3*2);
+				labelContainer.set('height', _self.get('height') - imgContainer.get('height'));
+				portal_image.set('height', imgContainer.get('height'));
+				_self._redefineDisplay(imgContainer);
+				_self._redefineDisplay(labelContainer);
+			} else if(imgContainer) {
+				//\u56fe\u7247\u5bb9\u5668\u9ad8\u5ea6\u4e0e\u4e3b\u5bb9\u5668\u9ad8\u5ea6\u4e00\u81f4
+				imgContainer.set('height', _self.get('height'));
+				_self._redefineDisplay(imgContainer);
+			} else {
+				//\u6587\u5b57\u5bb9\u5668\u9ad8\u5ea6\u4e0e\u4e3b\u5bb9\u5668\u9ad8\u5ea6\u4e00\u81f4
+				labelContainer.set('height',_self.get('height'));
+				_self._redefineDisplay(labelContainer);
+			}
+			//\u5c06\u6570\u636e\u4e2d\u8bbe\u5b9a\u7684\u6837\u5f0f\u4e0e\u672c\u8eab\u6837\u5f0f\u8fdb\u884c\u7ed1\u5b9a
+			if(_self.get('item').elStyle != undefined){
+				_self.set('elStyle', _self.get('item').elStyle);
+			}
+		},		
+		/**
+		 * \u91cd\u5b9a\u4e49\u5bb9\u5668\u4e3aflex\u5e03\u5c40\uff0c\u5e76\u5c45\u4e2d\u663e\u793a
+		 * @protected
+		 */
+		_redefineDisplay : function(container) {
+			container.set('elStyle', {'display': 'flex','justify-content': 'center', 'align-items':'Center'});
+		},
+		bindUI : function() {
+			var _self = this;
+			//\u76d1\u542c\u81ea\u8eab\u7684\u70b9\u51fb\u4e8b\u4ef6
+			_self.on('click', function(e){
+				///\u81ea\u5b9a\u4e49\u629b\u51fa\u4e8b\u4ef6
+				_self.fire('itemClick',{
+					item : _self.get('item')
+				});
+			});
+			//\u76d1\u542c\u9f20\u6807\u79fb\u5165\u65f6\u95f4\uff0c\u5e76\u6539\u53d8\u8fb9\u6846\u7684\u989c\u8272
+			_self.on('mouseenter', function(e){
+				var color = _self.get('el').css('backgroundColor');
+				var colorNum = color.split('rgb(')[1].split(')')[0].split(',');
+				colorNum[0] = parseInt(colorNum[0]) +15;
+				colorNum[1] = parseInt(colorNum[1]) +25;
+				colorNum[2] = parseInt(colorNum[2]) +35;
+				color = 'rgb('+ colorNum.join(',') + ')';			
+				_self.set('elStyle', {'border-color': color});
+			});
+			//\u76d1\u542c\u9f20\u6807\u79fb\u51fa\u65f6\u95f4\uff0c\u5e76\u6062\u590d\u8fb9\u6846\u6539\u53d8\u524d\u7684\u989c\u8272
+			_self.on('mouseleave', function(e){
+				_self.set('elStyle', {'border-color':'white'});
+			});
+	}
+	},
+	{
+		ATTRS : {
+			 /**
+             * \u63a7\u4ef6\u5bbd\u5ea6
+             * <pre><code>
+             * new Control({
+             *   width : 100 // 100,'100px','10%'
+             * });
+             * </code></pre>
+             * @cfg {Number|String} width
+             */
+			 /**
+             * \u63a7\u4ef6\u5bbd\u5ea6
+             * <pre><code>
+             *  control.set('width',100);
+             *  control.set('width','100px');
+             *  control.set('width','10%');
+             * </code></pre>
+             * @type {Number|String}
+             */
+			width : {value : 100},
+			 /**
+             * \u63a7\u4ef6\u9ad8\u5ea6
+             * <pre><code>
+             * new Control({
+             *   height : 100 // 100,'100px','20%'
+             * });
+             * </code></pre>
+             * @cfg {Number|String} height
+             */
+            /**
+             * \u63a7\u4ef6\u9ad8\u5ea6
+             * <pre><code>
+             *  control.set('height',100);
+             *  control.set('height','100px');
+             *  control.set('height','10%');
+             * </code></pre>
+             * @type {Number|String}
+             */
+			height : {value : 100},
+			 /**
+             * @cfg {Object} elStyle
+			 * \u63a7\u4ef6\u6839\u8282\u70b9\u5e94\u7528\u7684css\u5c5e\u6027
+             *  <pre><code>
+             *    var cfg = {elStyle : {width:'100px', height:'200px'}};
+             *  </code></pre>
+             */
+            /**
+             * \u63a7\u4ef6\u6839\u8282\u70b9\u5e94\u7528\u7684css\u5c5e\u6027\uff0c\u4ee5\u952e\u503c\u5bf9\u5f62\u5f0f
+             * @type {Object}
+			 *  <pre><code>
+             *	 control.set('elStyle',	{
+             *		width:'100px',
+             *		height:'200px'
+             *   });
+             *  </code></pre>
+             */
+			elStyle : {value : {}},
+			/**
+             * \u63a7\u4ef6\u6839\u8282\u70b9\u5e94\u7528\u7684\u6837\u5f0f
+             * <pre><code>
+             *  new Control({
+             *   elCls : 'test',
+             *   content : '\u5185\u5bb9',
+             *   render : '#t1'   //&lt;div id='t1'&gt;&lt;div class="test"&gt;\u5185\u5bb9&lt;/div&gt;&lt;/div&gt;
+             *  });
+             * </code></pre>
+             * @cfg {String} elCls
+             */
+            /**
+             * \u63a7\u4ef6\u6839\u8282\u70b9\u5e94\u7528\u7684\u6837\u5f0f css class
+             * @type {String}
+             */
+			elCls : {value : ELC_ITEM},
+			/**
+             * \u63a7\u4ef6\u7684\u6570\u636e\u5bf9\u8c61
+             * <pre><code>
+             *  new Control({
+             *     item : {type:'0', singleText:{text:'\u6bb5\u79d1\u5ba4\u7528\u6237', elStyle:{'font-size':40}}},
+             *     render : '#c1'
+             *  });
+             * </code></pre>
+             * @cfg {Object} item
+             */
+            /**
+             * \u63a7\u4ef6\u7684\u6570\u636e\u5bf9\u8c61
+             * @type {Object}
+             */
+			item : {},
+			events : {
+				value :{
+				  /**\u70b9\u51fb\u5206\u7c7b\u56fe\u6807\uff0c\u83b7\u53d6\u5bf9\u5e94\u7684\u7c7b\u578b\u5bf9\u8c61\uff0c\u5e76\u629b\u51fa\u6b64\u4e8b\u4ef6
+		           * @event
+		           * @name BUI.toolbar.PortalItem#itemClick
+		           * @param {Object} e \u70b9\u51fb\u4e8b\u4ef6
+		           * @param {Object} e.item \u7c7b\u578b\u5bf9\u8c61
+		           */
+					itemClick : true
+				}
+			}
+		}
+	}
+	);
+	
+	return PortalItem;
+});/**
+ * @fileOverview \u5206\u7c7b\u5165\u53e3\u7ec4\u4ef6
+ * @author zhengwm
+ * @date 190520
+ */
+define('bui/toolbar/portal',['bui/common', 'bui/toolbar/portalItem'],function(require){
+
+	var BUI = require('bui/common'),
+		Component = BUI.Component,
+		PortalItem = require('bui/toolbar/portalItem');
+	/**
+	 * \u5206\u7c7b\u5165\u53e3
+	 * ##\u521b\u5efa\u5bf9\u8c61
+	 * <pre>
+	 * <code>
+	 * BUI.use(['bui/toolbar/portal'],function(Protal){
+			var portal = new Protal({
+				render : '#j_toolbar',
+				items: [
+					{type:'0', singleText:{text:'\u6bb5\u79d1\u5ba4\u7528\u6237'}},
+					{type:'1', elStyle:{'width':200}, singleText:{text:'\u8f66\u95f4\u7528\u6237', elStyle:{'color':'red'}}},
+					{type:'2',  multiText: [{text:'\u661f\u671f\u4e09'},{text:'21', elStyle:{'font-size':40}}]},
+					{type:'2',  multiText: [{text:'\u661f\u671f\u4e09'},{text:'21', elStyle:{'font-size':40}},{text:'\u519c\u5386\u5341\u4e8c', elStyle:{'font-size':20, 'color':'#54FF9F'}}]},
+					{type:'3',src:'E:/bui/55/cj.png', elStyle:{'background-color':'red'}},
+					{type:'4',src:'E:/bui/55/gq.png', singleText:{text: '\u5de5\u533a\u7528\u6237'}}
+				]
+			});
+			portal.on('itemClick', function(e){
+				console.log(e.item);
+			});
+			portal.render();
+	  });
+	 * </code>
+	 * </pre>
+	 * @class BUI.Toolbar.Protal
+	 * @extends BUI.Component.Controller
+	 */
+	var Portal = Component.Controller.extend({
+		initializer:function(){
+			var _self = this;
+			var items = _self.get('items');
+			BUI.Array.each(items,function(item){
+				//\u589e\u52a0\u4e0a\u56fe\u7247\u4e0b\u6587\u5b57\u63cf\u8ff0\u7684\u5bb9\u5668
+				_self.addChild(new PortalItem({
+					item : item
+				}));
+			});
+		}
+	},
+	{
+		ATTRS : {
+			/**
+			 * \u9009\u62e9\u7684\u6570\u636e\u96c6\u5408
+			 * <pre><code>
+			 * var portal = new Protal({
+					render : '#j_toolbar',
+					items: [
+						{type:'0', singleText:{text:'\u6bb5\u79d1\u5ba4\u7528\u6237', elStyle:{'font-size':40}}},
+						{type:'1', elStyle:{'width':200}, singleText:{text:'\u8f66\u95f4\u7528\u6237', elStyle:{'color':'red'}}},
+						{type:'2',  multiText: [{text:'\u661f\u671f\u4e09'},{text:'21', elStyle:{'font-size':40}}]},
+						{type:'2',  multiText: [{text:'\u661f\u671f\u4e09'},{text:'21', elStyle:{'font-size':40}},{text:'\u519c\u5386\u5341\u4e8c', elStyle:{'font-size':20, 'color':'#54FF9F'}}]},
+						{type:'3',src:'E:/bui/55/cj.png', elStyle:{'background-color':'red'}},
+						{type:'4',src:'E:/bui/55/gq.png', singleText:{text: '\u5de5\u533a\u7528\u6237'}}
+					]
+				});				
+				portal.render();
+			 * </code></pre>
+			 * @cfg {Array} items
+			 */
+			/**
+			 * \u9009\u62e9\u7684\u6570\u636e\u96c6\u5408
+			 * <pre><code>
+			 *  portal.set('items',items); //\u5217\u8868\u4f1a\u76f4\u63a5\u66ff\u6362\u5185\u5bb9
+			 *  //\u7b49\u540c\u4e8e 
+			 *  portal.clearItems();
+			 *  portal.addItems(items);
+			 * </code></pre>
+			 * @type {Array}
+			 */
+			items : {value : []},
+			events : {
+				value :{
+				  /**\u70b9\u51fb\u5206\u7c7b\u56fe\u6807\uff0c\u83b7\u53d6\u5bf9\u5e94\u7684\u7c7b\u578b\u5bf9\u8c61\uff0c\u5e76\u629b\u51fa\u6b64\u4e8b\u4ef6
+		           * @event
+		           * @name BUI.toolbar.Portal#itemClick
+		           * @param {Object} e \u70b9\u51fb\u4e8b\u4ef6
+		           * @param {Object} e.item \u7c7b\u578b\u5bf9\u8c61
+		           */
+					itemClick : true
+				}
+			}
+		}
+	}
+	);
+	return Portal;
+});/**
  * @fileOverview \u8fdb\u5ea6\u6761\u547d\u540d\u7a7a\u95f4\u5165\u53e3
  * @ignore
  */
@@ -27994,17 +29875,23 @@ define('bui/progressbar/load',['bui/progressbar/base'],function(require){
  * @ignore
  */
 
-define('bui/calendar',['bui/common','bui/calendar/calendar','bui/calendar/monthpicker','bui/calendar/datepicker'],function (require) {
+define('bui/calendar',['bui/common','bui/calendar/calendar','bui/calendar/monthpicker','bui/calendar/datepicker',
+  'bui/calendar/datepickerclear','bui/calendar/monthpickerclear','bui/calendar/clearctl','bui/calendar/datepanel',
+  'bui/calendar/panelcontainer','bui/calendar/week','bui/calendar/day'],function (require) {
   var BUI = require('bui/common'),
     Calendar = BUI.namespace('Calendar');
   BUI.mix(Calendar,{
     Calendar : require('bui/calendar/calendar'),
     MonthPicker : require('bui/calendar/monthpicker'),
-    DatePicker : require('bui/calendar/datepicker')
+    DatePicker : require('bui/calendar/datepicker'),
+    DatePanel : require('bui/calendar/datepanel'),
+    Clearctl : require('bui/calendar/clearctl'),
+    DatePickerClear : require('bui/calendar/datepickerclear'),
+    MonthPickerClear : require('bui/calendar/monthpickerclear'),
   });
-
   return Calendar;
-});/**
+});
+/**
  * @fileOverview \u9009\u62e9\u5e74\u6708
  * @author dxq613@gmail.com
  * @ignore
@@ -29637,6 +31524,876 @@ define('bui/calendar/datepicker',['bui/common','bui/picker','bui/calendar/calend
   });
   return datepicker;
   
+});
+/**
+ * @fileOverview \u5e26\u6e05\u9664\u529f\u80fd\u7684\u63a7\u4ef6
+ * @author luoyan
+ * @ignore
+ */
+define('bui/calendar/clearctl',['bui/common'],function(require){
+  
+  var BUI = require('bui/common'),
+    Component = BUI.Component,
+  	UIBase = Component.UIBase;
+
+  var ClearctlView = Component.View.extend([
+      UIBase.PositionView
+  ]);
+  /**
+   * \u5e26\u6e05\u9664\u529f\u80fd\u7684\u63a7\u4ef6\uff0c\u663e\u793a\u4e3a\u201c\u00d7\u201d
+   * 
+   * xclass : 'calendar-clearctl'
+   * <pre><code>
+   *   BUI.use('bui/calendar',function(Calendar){
+   *      var clearctl = new Calendar.Clearctl({
+   *        referNode:'.calendar',
+   *      });
+   *      clearctl.show();
+   *    });
+   * </code></pre>
+   * @class BUI.Calendar.Clearctl
+   * @extends BUI.Component.Controller UIBase.Position UIBase.Align
+   * @ignore
+   */
+  var Clearctl = Component.Controller.extend([UIBase.Position,UIBase.Align],{
+	  initializer : function(){
+		  var _self = this;
+		  var uid = BUI.guid('clearctl');
+		  _self.set('id',uid);
+		  _self.set('align',{
+			  node: _self.get('referNode'),
+			  points : ['cr', 'cr'],
+			  offset: [-1, 0]
+		  });
+		  _self.set('zIndex',$(_self.get('referNode')).css('z-index')+1);
+	  },
+	  bindUI : function(){
+		  var _self = this,referNode=_self.get('referNode');
+		  _self.on('click',function(){
+			  $(referNode).val('');
+			  _self.fire('clearClick');
+		  })
+	  }
+  },{
+    ATTRS : {
+    	/**
+         * \u9700\u8981\u6e05\u9664\u6570\u636e\u7684\u6587\u672c\u6846\u7684\u9009\u62e9\u5668
+         * @type {String}
+         */
+    	referNode : {},
+    	/**
+    	 * \u63a7\u4ef6\u7684dom\u5143\u7d20\u7c7b\u578b
+    	 * @type {String}
+    	 * @ignore
+    	 */
+    	elTagName : {value : 'span'},
+    	/**
+    	 * \u63a7\u4ef6\u6837\u5f0f
+    	 * @type {Object}
+    	 * @ignore
+    	 */
+    	elStyle : {value : {border:0}},
+    	/**
+    	 * \u63a7\u4ef6class
+    	 * @type {String}
+    	 * @ignore
+    	 */
+    	elCls : {value : 'x-icon x-icon-normal'},
+    	/**
+    	 * \u63a7\u4ef6\u663e\u793a\u5185\u5bb9
+    	 * @type {String}
+    	 * @ignore
+    	 */
+		content : {value : '\u00d7'},
+		events:{
+			value:{
+			   /**
+				* \u70b9\u51fb\u6e05\u9664\u6309\u94ae\u4e8b\u4ef6
+			   * @event
+			   * @name BUI.Calendar.Clearctl#clearClick
+			   * @param {Object} e \u70b9\u51fb\u4e8b\u4ef6
+			   * @param {jQuery} e.node
+			   */
+			  'clearClick' : true,
+			}
+		},
+        xview : {
+            value : ClearctlView
+        },
+    }
+  },{
+    xclass:'clearctl'
+  });
+  Clearctl.View = ClearctlView;
+  return Clearctl;
+});
+/**
+ * @fileOverview \u5e26\u6e05\u9664\u529f\u80fd\u65e5\u671f\u9009\u62e9\u5668
+ * @author luoyan
+ * @ignore
+ */
+define('bui/calendar/datepickerclear',['bui/common','bui/calendar/datepicker','bui/calendar/clearctl'],function(require){
+  
+  var BUI = require('bui/common'),
+  	DatePicker = require('bui/calendar/datepicker'),
+  	Clearctl = require('bui/calendar/clearctl');
+
+  /**
+   * \u65e5\u671f\u9009\u62e9\u5668\uff0c\u5728DatePicker\u57fa\u7840\u4e0a\u6dfb\u52a0\u6e05\u9664\u8f93\u5165\u6846\u6570\u636e\u529f\u80fd
+   * 
+   * xclass : 'calendar-datepickerclear'
+   * <pre><code>
+   *   BUI.use('bui/calendar',function(Calendar){
+   *      var datepickerclear = new Calendar.DatePickerClear({
+   *        trigger:'.calendar',
+   *        autoRender : true,
+   *        showTime : true //\u662f\u5426\u663e\u793a\u65f6\u5206\u79d2\uff0c\u9ed8\u8ba4false
+   *      });
+   *    });
+   * </code></pre>
+   * @class BUI.Calendar.DatePickerClear
+   * @extends BUI.Calendar.DatePicker
+   */
+  var datepickerclear = DatePicker.extend({
+	  renderUI : function(){
+	    	var _self = this;
+	    	var trigger = _self.get('trigger');
+	    	$(trigger).each(function (i,domEl){
+	    		var clr = new Clearctl({
+	    			referNode : domEl
+          }).show();
+          clr.on('clearClick',function(e){
+            _self.fire('clearClick',{node : $(domEl)});
+          });
+    		});
+	    },
+   },{
+		xclass : 'datepickerclear',
+	    priority : 0
+  });
+  return datepickerclear;
+});
+/**
+ * @fileOverview \u5e26\u6e05\u9664\u529f\u80fd\u7684\u6708\u4efd\u9009\u62e9\u5668
+ * @author luoyan
+ * @ignore
+ */
+define('bui/calendar/monthpickerclear',['bui/common','bui/calendar/monthpicker','bui/calendar/clearctl'],function(require){
+  
+  var BUI = require('bui/common'),
+  	MonthPicker = require('bui/calendar/monthpicker'),
+  	Clearctl = require('bui/calendar/clearctl');
+
+  /**
+   * \u6708\u4efd\u9009\u62e9\u5668\uff0c\u5728MonthPicker\u57fa\u7840\u4e0a\u6dfb\u52a0\u9ed8\u8ba4\u9009\u4e2d\u5f53\u524d\u5e74\u6708\u3001\u56de\u663e\u5e74\u6708\u3001\u6e05\u9664\u8f93\u5165\u6846\u6570\u636e\u529f\u80fd
+   * 
+   * xclass : 'calendar-monthpickerclear'
+   * <pre><code>
+   *   BUI.use('bui/calendar',function(Calendar){
+   *		var monthpickerclear = new Calendar.MonthPickerClear({
+   *		    trigger:'.calendar',
+   *	    	autoHide : true,
+   *	        align : {
+   *	           	points:['bl','tl']
+   *	        }
+   *		});
+   *		monthpickerclear.render();
+   *   });
+   * </code></pre>
+   * @class BUI.Calendar.MonthPickerClear
+   * @extends BUI.Calendar.MonthPicker
+   */
+  var monthpickerclear = MonthPicker.extend({
+	  renderUI : function(){
+	    	var _self = this;
+	    	var trigger = _self.get('trigger');
+	    	$(trigger).each(function (i,domEl){
+	    		new Clearctl({
+	    			referNode : domEl
+	    		}).show()
+	    	});
+	  },
+	  bindUI : function(){
+		  //\u8bbe\u7f6e\u9ed8\u8ba4\u9009\u4e2d\u5f53\u524d\u5e74\u6708\uff0c\u7531\u4e8e\u901a\u8fc7\u89e6\u53d1itemselected\u6765\u5b9e\u73b0\uff0c\u6240\u4ee5\u65b9\u6cd5\u9700\u8981\u5728itemselected\u7ed1\u5b9a\u4e8b\u4ef6\u4e4b\u540e\u8c03\u7528
+		  this.setSelectedValue();
+	  },
+	  /**
+		* \u8bbe\u7f6e\u9009\u4e2d\u7684\u503c
+		* <pre><code>
+		*   monthPickerClear.setSelectedValue(2019,4);
+		* </code></pre>
+		* @param {Number} year \u5e74\u4efd
+		* @param {Number} month \u6708\u4efd
+		* @protected
+		*/
+	  setSelectedValue : function(year,month){
+		  var _self = this;
+		  var yearPanel = _self.get('yearPanel'),
+		  	 monthPanel = _self.get('monthPanel'),
+		  	 year = year || _self.get('selectedDate').getFullYear(),
+		  	month = month || _self.get('selectedDate').getMonth();
+	      if(yearPanel){
+	    	  yearPanel.setSelectedByField(year);
+	      }
+	      if(monthPanel){
+	    	  monthPanel.setSelectedByField(month);
+	      }
+	  },
+   },{
+		ATTRS : {
+			  /**
+			   * \u9ed8\u8ba4\u9009\u4e2d\u7684\u65e5\u671f
+			   * @type {Date}
+			   * @ignore
+			   */
+			  selectedDate: {
+			      value: new Date()
+			  },
+			   /**
+			    * \u6210\u529f\u7684\u56de\u8c03\u51fd\u6570\uff0c\u9ed8\u8ba4\u56de\u663e\u201c\u5e74-\u6708\u201d
+			    * <pre><code>
+			    * BUI.use('bui/calendar',function(Calendar){
+				* 	var monthpickerclear = new Calendar.MonthPickerClear({
+				* 	    trigger:'.calendar',
+				* 	    autoHide : true,
+				*         align : {
+				*            	points:['bl','tl']
+				*         },
+				*       success : function(){
+				*       	$('#echoMonth').val(this.get('year')+'\u5e74'+(this.get('month')+1)+'\u6708')
+				*       }
+				* 	});
+				* 	monthpickerclear.render();
+				* });
+			    * </code></pre>
+			    * @type {Function}
+			    */
+			  success:{
+			     value : function(){
+			    	 this.get('curTrigger').val(this.get('year')+'-'+(this.get('month')+1));
+			    	 this.hide();
+			     }
+			  },
+			  /**
+		       * \u53d6\u6d88\u7684\u56de\u8c03\u51fd\u6570\uff0c\u9ed8\u8ba4\u9690\u85cf\u7ec4\u4ef6
+		       * @type {Function}
+		       */
+		      cancel :{
+		    	  value : function(){
+		    		  this.hide();
+		    	  } 
+		      },
+			/**
+			 * \u8bbe\u7f6e\u5bf9\u9f50\u5c5e\u6027
+			 * \u5bf9\u9f50\u914d\u7f6e\uff0c\u8be6\u7ec6\u8bf4\u660e\u8bf7\u53c2\u770b\uff1a <a href="http://www.cnblogs.com/zaohe/archive/2013/04/09/3010651.html">JS\u63a7\u4ef6 \u5bf9\u9f50</a>
+			 * @type {Object}
+			 * @field
+			 * <code>
+			 *   var align =  {
+			 *        node: null,         // \u53c2\u8003\u5143\u7d20, falsy \u6216 window \u4e3a\u53ef\u89c6\u533a\u57df, 'trigger' \u4e3a\u89e6\u53d1\u5143\u7d20, \u5176\u4ed6\u4e3a\u6307\u5b9a\u5143\u7d20
+			 *        points: ['cc','cc'], // ['tr', 'tl'] \u8868\u793a overlay \u7684 tl \u4e0e\u53c2\u8003\u8282\u70b9\u7684 tr \u5bf9\u9f50
+			 *        offset: [0, 0]      // \u6709\u6548\u503c\u4e3a [n, m]
+			 *     };
+			 * </code>
+			 */
+			align:{
+			    value:{}
+			}
+		}
+	},{
+		xclass : 'monthpickerclear',
+  });
+  return monthpickerclear;
+});
+/**
+ * @fileOverview \u72ec\u7acb\u7684\u65e5\u671f\u63a7\u4ef6\uff0c\u76f4\u63a5\u4f7f\u7528\u800c\u975e\u5f39\u51fa\u4f7f\u7528
+ * @author roysong
+ */
+define('bui/calendar/datepanel', ['bui/calendar/header', 'bui/calendar/panelcontainer'], function (require) {
+
+  var BUI = require('bui/common'),
+    Header = require('bui/calendar/header'),
+    Panel = require('bui/calendar/panelcontainer'),
+    Component = BUI.Component,
+    UIBase = Component.UIBase,
+    DATE_MASK = 'isoDate',
+    DateUtil = BUI.Date;
+  /**
+   * \u65e5\u671f\u63a7\u4ef6\uff0c\u72ec\u7acb\u4f7f\u7528\u76f4\u63a5\u5c55\u793a\u5728\u754c\u9762\u4e0a\uff0c\u4e0d\u7528\u4e8e\u5404\u79cd\u5f39\u51fa\u6846\u573a\u666f\uff1b<br/>
+   * \u53ea\u663e\u793a\u65e5\u671f\uff0c\u4e0d\u663e\u793a\u65f6\u5206\u79d2\uff0c\u6ca1\u6709\u64cd\u4f5c\u6309\u94ae\uff1b<br/>
+   * \u70b9\u51fb\u67d0\u4e2a\u5177\u4f53\u7684\u65e5\u671f\u629b\u51fa\u4e8b\u4ef6\uff1b<br/>
+   * \u53ef\u81ea\u5b9a\u4e49\u9762\u677f\u5927\u5c0f\uff1b<br/>
+   * \u53ef\u6839\u636e\u6570\u636e\u53d8\u5316\u65e5\u671f\u5355\u5143\u683c\u7684\u989c\u8272\uff0c\u6ce8\u610f\uff0c\u989c\u8272\u9700\u8981\u7528\u6570\u636e\u8fdb\u884c\u8bbe\u7f6e;<br/>
+   * \u7ecf\u6d4b\u8bd5\u5efa\u8bae\u4f7f\u7528\u7684\u989c\u8272\u5173\u952e\u5b57\u5305\u62ec\uff1ared\u3001green\u3001blue\u3001black\u3001purple\u3001pink\u3001navy\u3001teal\u3001maroon\u3001fuchsia\u3001olive\uff1b<br/>
+   * \u4e5f\u53ef\u81ea\u5b9a\u4e49RGB\u4f20\u5165\uff1b<br/>
+   * xclass:'datepanel'
+   * <pre><code>
+   *  BUI.use('bui/calendar',function(Calendar){
+   *    // \u65e5\u671f\u5bf9\u5e94\u7684\u989c\u8272
+   *    var data = [
+	 *			{date : '2019-05-13',color : 'red'},
+	 *			{date : '2019-05-23',color : 'green'},
+	 *		];
+	 *  	var store = new Data.Store({
+	 *  		data : data
+	 *  	});
+   *    var datepanel = new Calendar.DatePanel({
+	 *  		render : '#form',
+	 *  		elStyle : {'font-size' : '18px'},//\u8bbe\u7f6e\u5b57\u4f53\u5927\u5c0f
+   *      maxDate : '2019-06-17',
+	 *		  minDate : '2019-05-17',
+	 *  		store : store,//\u7528\u4e8e\u6e32\u67d3\u65e5\u671f\u80cc\u666f\u8272\u7684\u6570\u636e\u6e90\uff1b\u5f53\u4e0d\u9700\u8981\u6e32\u67d3\u65e5\u671f\u80cc\u666f\u8272\u65f6\uff0c\u53ef\u4e0d\u7528\u6b64\u914d\u7f6e\u9879
+	 *  		width : 800,
+	 *  		height : 600
+	 *  	});
+	 *  	datepanel.render();
+	 *  	datepanel.on('click',function(e){
+	 *  		if(e.date)
+	 *  			console.log(e.date);	
+	 *  	});
+   *    // \u5207\u6362\u6708\u4efd\u65f6\uff0c\u5237\u65b0\u76ee\u6807\u6708\u7684\u65e5\u671f\u80cc\u666f\u8272
+	 *  	datepanel.on('monthchange',function(e){
+	 *  		var year = e.year,month = e.month + 1,monthstr = month;
+	 *	  	if(month < 10)
+	 *	  		monthstr = '0' + '' + month;
+	 *	  	store.setResult([
+	 *	  		{date : year + '-' + monthstr + '-' + '01',color: 'red'},
+	 *	  		{date : year + '-' + monthstr + '-' + '03',color: 'maroon'},
+	 *	  		{date : year + '-' + monthstr + '-' + '05',color: 'blue'},
+	 *	  		{date : year + '-' + monthstr + '-' + '07',color: 'green'},
+	 *	  		{date : year + '-' + monthstr + '-' + '09',color: 'fuchsia'},
+	 *	  		{date : year + '-' + monthstr + '-' + '11',color: 'navy'},
+	 *	  		{date : year + '-' + monthstr + '-' + '13',color: 'black'},
+	 *	  		{date : year + '-' + monthstr + '-' + '15',color: 'olive'},
+	 *	  		{date : year + '-' + monthstr + '-' + '18',color: 'teal'},
+	 *	  		{date : year + '-' + monthstr + '-' + '24',color: 'purple'},
+	 *	  		{date : year + '-' + monthstr + '-' + '25',color: 'pink'},
+	 *	  	]);
+	 *  	});
+   * });
+   * </code></pre>
+   * @class BUI.Calendar.DatePanel
+   * @mixins BUI.Component.UIBase.Bindable
+   * @extends BUI.Component.Controller
+   */
+  var datePanel = Component.Controller.extend([UIBase.Bindable],{
+
+    //\u8bbe\u7f6e\u5185\u5bb9
+    initializer: function () {
+      var _self = this, width = _self.get('width'),
+        height = _self.get('height'),
+        selectedDate = _self.get('selectedDate'),
+        header = new Header({ 
+          id: 'dateHeader',
+          year :  selectedDate.getFullYear(),
+          month : selectedDate.getMonth(),
+        }),
+        panel = new Panel({ 
+          id: 'datePanel',
+          store : _self.get('store'),
+          maxDate : _self.get('maxDate'),
+          minDate : _self.get('minDate'),
+          selected : selectedDate,
+        });
+      //\u6dfb\u52a0\u5934
+      _self.addChild(header);
+      //\u6dfb\u52a0panel
+      _self.addChild(panel);
+    },
+    //\u7ed1\u5b9a\u4e8b\u4ef6
+    bindUI: function () {
+      var _self = this,
+        header = _self.getChild('dateHeader'),
+        panel = _self.getChild('datePanel');
+      panel.on('selectedchange', function (e) {
+        var date = e.date;
+        if (!DateUtil.isDateEquals(date, _self.get('selectedDate'))) {
+          _self.set('selectedDate', date);
+        }
+        if(date)
+          _self.fire('click', { date: BUI.Date.format(date,DATE_MASK)});
+      });
+      header.on('monthchange', function (e) {
+        _self._setYearMonth(e.year, e.month);
+      });
+    },
+    //\u66f4\u6539\u5e74\u548c\u6708
+    _setYearMonth: function (year, month) {
+      var _self = this,panel = _self.getChild('datePanel'),
+        selectedDate = _self.get('selectedDate'),
+        date = selectedDate.getDate();
+      if (year !== selectedDate.getFullYear() || month !== selectedDate.getMonth()) {
+        var newDate = new Date(year, month, date);
+        if (newDate.getMonth() != month) { //\u4e0b\u4e00\u4e2a\u6708\u6ca1\u6709\u5bf9\u5e94\u7684\u65e5\u671f,\u5b9a\u4f4d\u5230\u4e0b\u4e00\u4e2a\u6708\u6700\u540e\u4e00\u5929
+          newDate = DateUtil.addDay(-1, new Date(year, month + 1));
+        }
+        _self.set('selectedDate', newDate);
+        panel.setMonth(year,month);
+      }
+    },
+    onLoad : function(){
+      var _self = this,panel = _self.getChild('datePanel'),
+      store = _self.get('store'),items = store.getResult();
+      if(items)
+        panel.updateColor(items);
+    },
+  }, {
+      ATTRS:
+      {
+        /**
+         * \u65e5\u5386\u63a7\u4ef6\u5934\u90e8\uff0c\u9009\u62e9\u5e74\u6708
+         * @private
+         * @type {Object}
+         */
+        header: {
+
+        },
+        /**
+         * \u65e5\u5386\u63a7\u4ef6\u9009\u62e9\u65e5
+         * @private
+         * @type {Object}
+         */
+        panel: {
+
+        },
+        /**
+         * \u6700\u5927\u65e5\u671f\uff0c\u8bbe\u7f6e\u8fd9\u4e2a\u503c\u4ee5\u540e\uff0c\u5927\u4e8e\u6700\u5927\u65e5\u671f\u7684\u65e5\u5b50\u70b9\u51fb\u662f\u6ca1\u6709click\u4e8b\u4ef6\u629b\u51fa\u7684
+         * <pre><code>
+         *   datePanel.set('maxDate','2013-07-29');
+         * </code></pre>
+         * @type {Date}
+         */
+        maxDate: {
+
+        },
+        /**
+         * \u6700\u5c0f\u65e5\u671f\uff0c\u8bbe\u7f6e\u4e86\u8fd9\u4e2a\u503c\u4ee5\u540e\uff0c\u5c0f\u4e8e\u6700\u5c0f\u65e5\u671f\u7684\u65e5\u5b50\u70b9\u51fb\u662f\u6ca1\u6709click\u4e8b\u4ef6\u629b\u51fa\u7684
+         * <pre><code>
+         *   datePanel.set('minDate','2013-07-29');
+         * </code></pre>
+         * @type {Date}
+         */
+        minDate: {
+
+        },
+        /**
+         * \u65e5\u671f\u9762\u677f\u6574\u4f53\u7684\u5bbd\u5ea6\uff0c\u53ef\u6839\u636e\u4e1a\u52a1\u9700\u8981\u81ea\u7531\u8c03\u8282,\u5efa\u8bae\u5bbd\u9ad8\u6bd4\u4fdd\u63014:3
+         * @cfg {Number} [width=380]
+         */
+        width: {
+          value: 380
+        },
+        /**
+         * \u65e5\u671f\u9762\u677f\u6574\u4f53\u7684\u9ad8\u5ea6\uff0c\u53ef\u6839\u636e\u4e1a\u52a1\u9700\u8981\u81ea\u7531\u8c03\u8282
+         * @cfg {Number} [height=285]
+         */
+        height: {
+          value: 285
+        },
+        events: {
+          value: {
+            /**
+            * @event
+            * @name BUI.Calendar.DatePanel#click
+            * @param {Object} e \u70b9\u51fb\u4e8b\u4ef6
+            * @param {Date} e.date
+            */
+            'click': false,
+            /**
+            * @event
+            * @name BUI.Calendar.DatePanel#monthchange
+            * @param {Object} e \u6708\u4efd\u53d1\u751f\u6539\u53d8
+            * @param {Number} e.year
+            * @param {Number} e.month
+            */
+            'monthchange': false
+          }
+        },
+        /**
+         * \u9009\u62e9\u7684\u65e5\u671f,\u9ed8\u8ba4\u4e3a\u5f53\u5929
+         * <pre><code>
+         *  var datePanel = new Calendar.DatePanel({
+         *   render:'#calendar',
+         *   selectedDate : new Date('2013/07/01') //\u4e0d\u80fd\u4f7f\u7528\u5b57\u7b26\u4e32
+         * });
+         * </code></pre>
+         * @cfg {Date} [selectedDate=today]
+         */
+        selectedDate: {
+          value: BUI.Date.today()
+        },
+        /**\u7528\u4e8e\u65e5\u671f\u80cc\u666f\u8272\u6e32\u67d3\u7684\u6570\u636e\u7f13\u51b2<br/>
+         * \u6570\u636e\u683c\u5f0f\u4e3a[{date : '2019-05-13',color : 'red'},{date : '2019-05-23',color : 'green'}]<br/>
+         * \u989c\u8272\u5173\u952e\u5b57\u5305\u62ec\uff1ared\u3001green\u3001blue\u3001black\u3001purple\u3001pink\u3001navy\u3001teal\u3001maroon\u3001fuchsia\u3001olive\uff1b<br/>
+         * \u5982\u679c\u4e0d\u9700\u8981\u65e5\u671f\u80cc\u666f\u8272\uff0c\u53ef\u4e0d\u4f7f\u7528\u6b64\u914d\u7f6e\u9879<br/>
+         * @cfg {BUI.Data.Store} [store]
+         */
+        store : {},
+      }
+    }, {
+      xclass: 'datepanel',
+      priority: 0
+    });
+
+  return datePanel;
+});
+
+/**
+ * @fileOverview \u65e5\u5386\u63a7\u4ef6\u663e\u793a\u4e00\u6708\u7684\u65e5\u671f\u9762\u677f\u5bb9\u5668
+ * @author roysong
+ * @ignore
+ */
+define('bui/calendar/panelcontainer',['bui/common','bui/calendar/week'],function (require) {
+
+  var BUI = require('bui/common'),
+    Component = BUI.Component,
+    DateUtil = BUI.Date,
+    Week = require('bui/calendar/week'),
+    CLS_SELECTED = 'x-datepicker-selected',
+    SHOW_WEEKS = 6//\u5f53\u524d\u5bb9\u5668\u663e\u793a6\u5468
+    ;
+
+  /**
+   * \u65e5\u5386\u63a7\u4ef6\u663e\u793a\u65e5\u671f\u7684\u5bb9\u5668
+   * xclass:'calendar-panelcontainer'
+   * @class BUI.Calendar.PanelContainer
+   * @private
+   * @extends BUI.Component.Controller
+   */
+  var panel = Component.Controller.extend(
+  {
+    /**
+     * \u8bbe\u7f6e\u9ed8\u8ba4\u5e74\u6708
+     * @protected
+     */
+    initializer : function(){
+      var _self = this,
+        now = new Date();
+      if(!_self.get('year')){
+        _self.set('year',now.getFullYear());
+      }
+      if(!_self.get('month')){
+        _self.set('month',now.getMonth());
+      }
+      _self.updatePanel();
+    },
+    /**
+     * \u5237\u65b0\u663e\u793a
+     */
+    updatePanel : function(){
+      var _self = this;
+      _self.removeChildren(true);
+      var startDate = _self._getFirstDate();
+      for (var i = 0; i < SHOW_WEEKS; i++) {
+        var weekStart = DateUtil.addWeek(i,startDate);
+        var oneWeek = new Week({
+          startDate : weekStart,
+          maxDate : _self.get('maxDate'),
+          minDate : _self.get('minDate'),
+          month : _self.get('month'),
+        });
+        _self.addChild(oneWeek);
+      };
+    },
+    updateColor : function(items){
+      var _self = this,children = _self.get('children');
+      BUI.each(children,function(c){
+        c.updateColor(items);
+      });
+    },
+    //\u83b7\u53d6\u5f53\u524d\u5bb9\u5668\u7684\u7b2c\u4e00\u5929
+    _getFirstDate : function(year,month){
+      var _self = this,
+        monthFirstDate = _self._getMonthFirstDate(year,month),
+        day = monthFirstDate.getDay();
+      return DateUtil.addDay(day * -1,monthFirstDate);
+    },
+    //\u83b7\u53d6\u5f53\u6708\u7684\u7b2c\u4e00\u5929
+    _getMonthFirstDate : function(year,month){
+      var _self = this,
+        year = year || _self.get('year'),
+        month = month || _self.get('month');
+      return new Date(year,month);
+    },
+    /**
+     * @protected
+     * @ignore
+     */
+    bindUI : function(){
+      var _self = this,
+        el = _self.get('el');
+      _self.on('selectedDate',function(e){
+        el.find('.'+CLS_SELECTED).removeClass(CLS_SELECTED);
+        e.el.addClass(CLS_SELECTED);
+        delete e.el;//\u7531\u4e8e\u4e8b\u4ef6\u4f1a\u7ee7\u7eed\u629b\u51fa\uff0c\u5220\u9664\u5b83\u7684dom\u5c5e\u6027\u4ee5\u514d\u5185\u5b58\u6cc4\u9732
+        _self.set('selected',e.date);
+        _self.fire('selectedchange',e);
+      }); 
+    },
+    /**
+     * \u8bbe\u7f6e\u5e74\u6708
+     * @param {Number} year  \u5e74
+     * @param {Number} month \u6708
+     */
+    setMonth : function(year,month){
+      var _self = this,
+        curYear = _self.get('year'),
+        curMonth = _self.get('month');
+      if(year !== curYear || month !== curMonth){
+        _self.set('year',year);
+        _self.set('month',month);
+    		_self.updatePanel();
+      }
+    },
+  },{
+    ATTRS:
+    {
+      /**
+       * \u5c55\u793a\u7684\u6708\u6240\u5c5e\u5e74
+       * @type {Number}
+       */
+      year : {
+      },
+      elCls : {
+        value : 'bui-calendar-panel'
+      },
+      /**
+       * \u5c55\u793a\u7684\u6708
+       * @type {Number}
+       */
+      month:{
+      },
+      /**
+       * \u9009\u4e2d\u7684\u65e5\u671f
+       * @type {Date}
+       */
+      selected : {
+      },
+      focusable:{
+      },
+      events:{
+        value : {
+          /**
+           * @name BUI.Calendar.Panel#selectedchange
+           * @param {Object} e \u70b9\u51fb\u4e8b\u4ef6
+           * @param {Date} e.date
+           */
+          'selectedchange' : false,
+          'selectedDate' : false,
+        }
+      },
+      /**
+       * \u6700\u5c0f\u65e5\u671f
+       * @type {Date | String}
+       */
+      maxDate : {
+        setter : function(val){
+          if(val){
+            if(BUI.isString(val)){
+              return DateUtil.parse(val);
+            }
+            return val;
+          }
+        }
+      },
+      /**
+       * \u6700\u5c0f\u65e5\u671f
+       * @type {Date | String}
+       */
+      minDate : {
+        setter : function(val){
+          if(val){
+            if(BUI.isString(val)){
+              return DateUtil.parse(val);
+            }
+            return val;
+          }
+        }
+      },
+      tpl:{
+        value:'<table class="x-datepicker-inner" cellspacing="0">' +
+                '<thead>' +
+                   '<tr>' +
+                    '<th  title="Sunday"><span>\u65e5</span></th>' +
+                    '<th  title="Monday"><span>\u4e00</span></th>' +
+                    '<th  title="Tuesday"><span>\u4e8c</span></th>' +
+                    '<th  title="Wednesday"><span>\u4e09</span></th>' +
+                    '<th  title="Thursday"><span>\u56db</span></th>' +
+                    '<th  title="Friday"><span>\u4e94</span></th>' +
+                    '<th  title="Saturday"><span>\u516d</span></th>' +
+                  '</tr>' +
+                '</thead>' +
+                '<tbody class="x-datepicker-body">' +
+                '</tbody>' +
+              '</table>'
+      },
+      childContainer: {
+        value : 'tbody'
+      },
+    }
+  },{
+    xclass:'calendar-panelcontainer',
+    priority:0
+  });
+
+  return panel;
+});/**
+ * @fileOverview \u65e5\u671f\u9762\u677f\u5bb9\u5668\u4e2d\u5355\u5468\u7684\u5bb9\u5668
+ * @author roysong
+ * @ignore
+ */
+define('bui/calendar/week',['bui/common','bui/calendar/day'],function(r){
+  var BUI = r('bui/common'),
+    Component = BUI.Component,
+    DateUtil = BUI.Date,
+    Day = r('bui/calendar/day');
+  var week = Component.Controller.extend({
+    initializer : function(){
+        var _self = this,startDate = _self.get('startDate');
+        for(var i = 0;i < 7;i++){//\u4e00\u5468\u67097\u5929\u3002\u3002\u3002\u4ffa\u5bfb\u601d\u7740\u5176\u5b9e\u8fd9\u4e0d\u9700\u8981\u6ce8\u91ca\u5427
+            var date = DateUtil.addDay(i,startDate);
+            var oneDay = new Day({
+                date : date,
+                maxDate : _self.get('maxDate'),
+                minDate : _self.get('minDate'),
+                month : _self.get('month'),
+                dateNumber: date.getDate()});
+            _self.addChild(oneDay);
+        }
+    },
+    updateColor : function(items){
+        var _self = this,children = _self.get('children');
+        BUI.each(children,function(c){
+          c.updateColor(items);
+        });
+    },
+  },{
+      ATTRS : {
+        startDate : {},
+        month : {},
+        maxDate : {},
+        minDate: {},
+        elTagName : {value : 'tr'},
+        events:{
+            value : {
+              /**
+               * @event
+               * @param {Object} e \u70b9\u51fb\u4e8b\u4ef6
+               * @param {Date} e.date
+               */
+              'selectedDate' : true,
+            }
+       },
+      }
+  });
+  return week;
+});/**
+ * @fileOverview \u65e5\u671f\u9762\u677f\u5bb9\u5668\u4e2d\u5355\u65e5\u7684\u5bb9\u5668
+ * @author roysong
+ * @ignore
+ */
+define('bui/calendar/day',['bui/common'],function(r){
+  var BUI = r('bui/common'),
+    Component = BUI.Component,
+    DateUtil = BUI.Date,
+    CLS_TODAY = 'x-datepicker-today',
+    DATE_MASK = 'isoDate',
+    dateTypes = {
+      deactive : 'prevday',
+      active : 'active',
+      disabled : 'disabled'
+    },
+    CLS_SELECTED = 'x-datepicker-selected',
+    weekDays = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+  var day = Component.Controller.extend({
+    renderUI : function(){
+        var _self = this,date = _self.get('date'),el = _self.get('el'),
+        day = date.getDay(),
+        todayCls = _self._isToday(date) ? CLS_TODAY:'',
+        dayOfWeek = weekDays[day],
+        //\u4e0d\u5728\u6307\u5b9a\u7684\u6700\u5927\u6700\u5c0f\u8303\u56f4\u5185\uff0c\u7981\u6b62\u9009\u4e2d
+        dateType = _self._isInRange(date) ? 
+         //\u4e0d\u662f\u672c\u6708\u5219\u5904\u4e8e\u4e0d\u6d3b\u52a8\u72b6\u6001
+        (_self._isCurrentMonth(date) ? dateTypes.active : dateTypes.deactive) : 
+        dateTypes.disabled
+        ;
+        el.addClass('x-datepicker-' + dateType);
+        el.addClass(todayCls);
+        el.addClass('day-' + dayOfWeek);
+        el.attr('title',DateUtil.format(date,DATE_MASK));
+    },
+    bindUI : function(){
+        var _self = this,el = _self.get('el'),date = _self.get('date');
+        _self.on('click',function(e){
+            if(!(_self._isInRange(date))) return;
+            if(!(_self._isCurrentMonth(date))) return;
+            _self.fire("selectedDate",{date : _self.get('date'),el : el});
+        });
+    },
+    //\u662f\u5426\u662f\u4eca\u5929
+    _isToday : function(date){
+      var tody = new Date();
+      return tody.getFullYear() === date.getFullYear() && 
+        tody.getMonth() === date.getMonth() && 
+        tody.getDate() === date.getDate();
+    },
+    //\u662f\u5426\u5728\u5141\u8bb8\u7684\u8303\u56f4\u5185
+    _isInRange : function(date){
+      var _self = this,
+        maxDate = _self.get('maxDate'),
+        minDate = _self.get('minDate');
+
+      if(minDate && date < minDate){
+        return false;
+      }
+      if(maxDate && date > maxDate){
+        return false;
+      }
+      return true;
+    },
+    //\u662f\u5426\u662f\u5f53\u524d\u663e\u793a\u7684\u6708
+    _isCurrentMonth : function(date){
+      return date.getMonth() === this.get('month');
+    },
+    updateColor : function(items){
+        var _self = this,date = _self.get('date'),el = _self.get('el'),
+            dateStr = BUI.Date.format(date,DATE_MASK);
+        var item = BUI.Array.find(items,function(i){return i.date == dateStr;});
+        if(item){
+            el.css('background-color',item.color);
+            el.find('a').css('color', 'white');
+        }else{
+            el.css('background-color','');
+            if(el.find('a').css == 'white')
+                el.find('a').css('color', 'black');
+        }
+    }
+  },{
+      ATTRS : {
+        date : {},
+        dateNumber : {},
+        maxDate : {},
+        minDate: {},
+        month : {},
+        elTagName : {value : 'td'},
+        elCls : {value : 'x-datepicker-date'},
+        tpl : {value : '<a href="#" hidefocus="on" tabindex="1">'+
+                '<em><span>{dateNumber}</span></em>'+
+                '</a>'
+              },
+        events:{
+          value : {
+            /**
+             * @event
+             * @param {Object} e \u70b9\u51fb\u4e8b\u4ef6
+             * @param {Date} e.date
+             */
+            'selectedDate' : true,
+          }
+        },
+      }
+  });
+  return day;
 });
 /**
  * @fileOverview \u7f16\u8f91\u5668\u547d\u540d\u7a7a\u95f4\u5165\u53e3
@@ -33379,7 +36136,8 @@ define('bui/grid/format',function (require) {
 ;(function(){
 var BASE = 'bui/grid/plugins/';
 define('bui/grid/plugins',['bui/common',BASE + 'selection',BASE + 'cascade',BASE + 'cellediting',BASE + 'rowediting',BASE + 'autofit',
-	BASE + 'dialogediting',BASE + 'menu',BASE + 'summary',BASE + 'rownumber',BASE + 'columngroup',BASE + 'rowgroup',BASE + 'columnresize'],function (r) {
+	BASE + 'dialogediting',BASE + 'menu',BASE + 'summary',BASE + 'rownumber',BASE + 'columngroup',BASE + 'rowgroup',
+	BASE + 'columnresize', BASE + 'rowmark'],function (r) {
 	var BUI = r('bui/common'),
 		Selection = r(BASE + 'selection'),
 
@@ -33398,7 +36156,9 @@ define('bui/grid/plugins',['bui/common',BASE + 'selection',BASE + 'cascade',BASE
 			RowNumber : r(BASE + 'rownumber'),
 			ColumnGroup : r(BASE + 'columngroup'),
 			RowGroup : r(BASE + 'rowgroup'),
-			ColumnResize : r(BASE + 'columnresize')
+			ColumnResize : r(BASE + 'columnresize'),
+			RowMark : r(BASE + 'rowmark'),
+			Badge : r(BASE + 'badge')
 		});
 		
 	return Plugins;
@@ -36392,6 +39152,522 @@ define('bui/grid/plugins/columnresize',function (require) {
 
   return Resize;
 });/**
+ * @fileOverview Row Mark \u884c\u5217\u6570\u636e\u989c\u8272\u6807\u8bb0\u53ca\u5176\u56fe\u4f8b\u5c55\u793a\u63d2\u4ef6
+ * @ignore
+ * @author lilt
+ * @since 2019-05-17 19:11:28
+ */
+define('bui/grid/plugins/rowmark',['bui/common','bui/toolbar'], function(require) {
+  var Toolbar = require('bui/toolbar'), ROWNUMBER_CLS_NUMBER = 'x-grid-rownumber';
+    /**
+     * grid\u63d2\u4ef6 
+     * <pre><code>
+     *   var columns = [
+     *      {title : '\u8868\u59341',dataIndex :'a', width:100},
+     *      {id: '123',title : '\u8868\u59342',dataIndex :'b', width:100},
+     *      {title : '\u8868\u59343',dataIndex : 'c',width:200}
+     *    ],
+     *   data = [{a:'123', status: 1},{a:'cdd',b:'edd', status : 0},{a:'1333',c:'eee',d:2, status:2},{a:'1232',b:'eeewe',c:'ww1231',status:3}];
+     *   var rowMark = new Grid.Plugins.RowMark({
+     *        statusField: 'status',
+     *        items : [
+     *            {name : '\u7ea2\u8272', color:'red', value : 1}, // data\u4e2d\u5bf9\u5e94\u5143\u7d20 status = 1 \u7684\u6570\u636e
+     *            {name : '\u84dd\u8272', color:'blue', value : 2},  // data\u4e2d\u5bf9\u5e94\u5143\u7d20 status = 2 \u7684\u6570\u636e
+     *            {name : '\u81ea\u5b9a\u4e49', color:'#9966ff', value : 3} // data\u4e2d\u5bf9\u5e94\u5143\u7d20 status = 3\u7684\u6570\u636e
+     *         // {name : '\u9ed8\u8ba4\u8272', color : '#000'}  data\u4e2d\u5bf9\u5e94\u5143\u7d20 status < 1 \u6216 status > 3 \u7684\u6570\u636e\u5747\u4f7f\u7528\u5176\u9ed8\u8ba4\u8272
+     *        ]      
+     *    });
+     *  var store = new Store({
+     *      data : data
+     *    }),
+     *    grid = new Grid.Grid({
+     *      render:'#grid',
+     *      columns : columns,
+     *      idField : 'a',
+     *      store : store,
+     *       plugins : [rowMark] // \u63d2\u4ef6\u5f62\u5f0f\u5f15\u5165\u8868\u683c 
+     *    });
+     *  grid.render();
+     * </code></pre>
+     * 
+     * Tree-grid\u63d2\u4ef6
+     * <pre><code>
+     * var data = [ 
+     *     {text : '1',id : '1',a:'a1',b:'b1',status: 0,children: [{text : '11',id : '11',a:'a11',b:'b11',status:1}]},
+     *     {text : '2',id : '2',a:'a2',b:'b2',status: 1,expanded : true,children : [
+     *         {text : '21',id : '21',a:'a21',b:'b21',status: 2,children : [{text : '211',id : '211',a:'a211',b:'b211',status: 0},{text : '212',id : '212',a:'a212',b:'b212',status: 2}]},
+     *         {text : '22',id : '22',a:'a22',b:'b22',status: 0}
+     *     ]},
+     *     {text : '3',id : '3',a:'a3',b:'b3',status: 2},
+     *     {text : '4',id : '4',a:'a4',b:'b4',status: 3}
+     *   ];
+     * var rowMark = new Grid.Plugins.RowMark({
+     *     statusField: 'status',
+     *     items : [
+     *         {name : '\u7ea2\u8272', color:'red', value : 1}, // data\u4e2d\u5bf9\u5e94\u5143\u7d20 status = 1 \u7684\u6570\u636e
+     *         {name : '\u84dd\u8272', color:'blue', value : 2}, // data\u4e2d\u5bf9\u5e94\u5143\u7d20 status = 2 \u7684\u6570\u636e
+     *         {name : '\u81ea\u5b9a\u4e49', color:'#9966ff', value : 3} // data\u4e2d\u5bf9\u5e94\u5143\u7d20 status = 3\u7684\u6570\u636e
+     *      // {name : '\u9ed8\u8ba4\u8272', color : '#000'}  data\u4e2d\u5bf9\u5e94\u5143\u7d20 status < 1 \u6216 status > 3 \u7684\u6570\u636e\u5747\u4f7f\u7528\u5176\u9ed8\u8ba4\u8272
+     *     ]      
+     * });
+     * var tree = new TreeGrid({
+     *   render : '#t1',
+     *   nodes : data,
+     *   columns : [
+     *     {title : '\u8868\u59341',dataIndex :'text',width:300}, 
+     *     {title : '\u8868\u59342',dataIndex :'a',width:100}, 
+     *     {title : '\u8868\u59343',dataIndex : 'b',width:100}
+     *   ],
+     *   height:250,
+     *   plugins : [rowMark] // \u63d2\u4ef6\u5f62\u5f0f\u5f15\u5165\u8868\u683c
+     * });
+     * tree.render();
+     * </code></pre>
+     * 
+     * @class BUI.Grid.Plugins.RowMark  \u5217\u8868\u6839\u636e\u72b6\u6001\u6807\u8bb0\u884c\u5217\u989c\u8272\u53ca\u5de5\u5177\u680f\u663e\u793a\u56fe\u4f8b\u63d2\u4ef6
+     */
+    function RowMark(config){
+      RowMark.superclass.constructor.call(this, config);
+    }
+
+    BUI.extend(RowMark,BUI.Base);
+    
+    RowMark.ATTRS = 
+    {
+      /**
+       * \u6839\u636e\u72b6\u6001\u503c\u5f85\u6807\u8bb0\u989c\u8272\u7684grid\u4e2d\u7684data\u6570\u636e\u5b57\u6bb5
+       * @type  {String} [statusField = 'status']
+       */
+      statusField : {
+        value : 'status'
+      },
+      /**
+       * \u72b6\u6001\u503c\u5bf9\u5e94\u7684\u56fe\u4f8b\u6807\u7b7e\u540d\u53ca\u989c\u8272\uff0cvalue\u5bf9\u5e94\u7684statusField\u5b57\u6bb5\u7684\u53d6\u503c\uff0c\u5373 statusField=value;
+       * grid\u4e2d\u5bf9\u5e94statusField\u7684\u672a\u5728items\u4e2d\u5217\u51fa\u7684\u503c\u65f6\u9ed8\u8ba4\u4e3a\u9ed1\u8272
+       * <p>
+       *  \u9ed8\u8ba4\u60c5\u51b5\u4e0b\uff0c\u884c\u5217\u6807\u8bb0\u7684\u89c4\u5219\u4e3agrid\u7684data\u6570\u7ec4\u4e2dstatus\u4e3atrue\u7684\u6570\u636e\u6e32\u67d3\u4e3a\u7ea2\u8272\uff0c\u5176\u4f59\u9ed8\u8ba4\u4e3a\u9ed1\u8272\u3002
+       * </p>
+       * @type {Object} item:[{name:'', color:'', value: ''}...]
+       */
+      items : [
+        {name : '\u7ea2\u8272', color : 'red', value : true},
+        {name : '\u9ed8\u8ba4\u8272', color : 'black', value : false}
+      ]
+
+    };
+
+    BUI.augment(RowMark, {
+      // \u521b\u5efa\u56fe\u4f8b
+      createDom :  function(grid){
+        var _self = this, items = _self.get('items');
+        _self._initLegend(grid, items);
+      },
+      // \u6839\u636e\u72b6\u6001\u6570\u636e\u503c\u7684\u914d\u7f6e\u6807\u8bb0\u6bcf\u884c\u6570\u636e\u7684\u989c\u8272
+      bindUI : function(grid){
+        var _self = this, statusField  = _self.get('statusField'), items = _self.get('items');
+        grid.on('rowcreated', function(e){
+          var value = e.record[statusField], color = _self._getColorFromItems(items, value); // \u83b7\u53d6\u72b6\u6001\u503c\u5bf9\u5e94\u503c\u7684\u6807\u8bb0\u989c\u8272
+          if(color) { // \u82e5\u83b7\u53d6\u5230\u4e86\u8be5\u884c\u5f85\u6e32\u67d3\u7684\u989c\u8272\u503c\u5219\u4e3a\u5176\u66f4\u6539\u6210\u6307\u5b9a\u989c\u8272\uff0c\u5426\u5219\u4f7f\u7528\u9ed8\u8ba4\u884c\u5217\u6587\u5b57\u989c\u8272\uff1a\u9ed1\u8272
+            $(e.domTarget).children(':not(.'+ ROWNUMBER_CLS_NUMBER +')').css({color : color}); // dom\u9009\u62e9\u9664\u884c\u53f7\u5916\u7684\u5176\u4ed6\u6570\u636e\u5355\u5143\u683c\u6e32\u67d3\u989c\u8272
+          }
+        });
+      },
+      /**
+       * \u521d\u59cb\u5316\u8868\u683c\u53f3\u4e0a\u65b9\u5de5\u5177\u680f\u4e2d\u7684\u56fe\u4f8b\u5c55\u793a
+       * @param {*} grid 
+       * @param {*} items 
+       * @private
+       */
+      _initLegend : function(grid, items){
+        var _self = this, tbar = grid.get('tbar'), legendItems = [];
+        BUI.each(items, function(item){
+          var color = item.color;
+          // \u82e5\u5bf9\u8c61\u672a\u6307\u5b9a\u989c\u8272\uff0c\u5219\u751f\u6210\u968f\u673a\u8272
+          if(!color) {
+            color = _self.getRandomColor();
+            item.color = color;
+          }
+          legendItems.push({
+            content : '<span style="background-color: '+ color +';display:inline-block;width:10px;height:10px;margin-right:3px;"></span>--'+item.name
+          });
+        });
+        // \u5c01\u88c5\u56fe\u4f8b\u521b\u5efa\u5bf9\u8c61
+        var tbarObject = {
+          elCls : 'pull-right',
+          items : legendItems 
+        };
+        if(tbar){ // grid\u5df2\u5b58\u5728\u5de5\u5177\u680f\u4fe1\u606f\uff0c\u5219\u5411\u5de5\u5177\u680f\u589e\u52a0\u53f3\u4fa7\u56fe\u4f8b\u7ec4\u4ef6
+          tbar.addChild(new Toolbar.Bar(tbarObject));
+        } else{ // grid\u4e0d\u5b58\u5728\u5de5\u5177\u680f\u4fe1\u606f\uff0c\u5219\u5411grid\u6dfb\u52a0\u5de5\u5177\u680f\u914d\u7f6e\u5bf9\u8c61
+          grid.set('tbar', tbarObject);
+        }
+        _self.set('items', items);
+      },
+      // \u6839\u636e\u72b6\u6001\u6807\u8bb0\u5b57\u6bb5\u503c\u83b7\u53d6\u5bf9\u5e94\u8be5\u884c\u5f85\u6e32\u67d3\u7684\u989c\u8272
+      _getColorFromItems : function(items, value){
+        var color; 
+        BUI.each(items, function(item){
+          if(item.value == value) color = item.color; 
+        });
+        return color;
+      },
+      /**
+       * \u83b7\u53d6\u4e00\u4e2a\u968f\u673a\u8272
+       * @protected 
+       * @return {String} \u2018#000000\u2019\u683c\u5f0f\u7684\u989c\u8272\u5b57\u7b26\u4e32
+       */
+      getRandomColor : function () {
+        var r = Math.round(Math.random() * 255), g = Math.round(Math.random() * 255), b = Math.round(Math.random() * 255);
+        var color = r << 16 | g << 8 | b;
+        return "#" + color.toString(16)
+      }
+    });
+  
+    return RowMark;
+});
+/**
+ * @fileOverview badge \u5fbd\u6807
+ * @author bili
+ * @ignore
+ */
+define('bui/grid/plugins/badge', ['bui/common'], function (require) {
+    var BUI = require('bui/common'),
+        UA = BUI.UA;
+    /**
+     * \u6839\u636e HSB \u8272\u5f69\u6a21\u578b\u8fdb\u884c\u8bbe\u8ba1\uff0c\u5e73\u8861\u4e86\u53ef\u8bfb\u6027\u3001\u7f8e\u611f\u4ee5\u53ca\u53ef\u7528\u6027\u5f97\u51fa
+     */
+    STATUS = {
+        success: '#52c41a',
+        error: '#f5222d',
+        default: '#d9d9d9',
+        processing: '#1890ff',
+        warning: '#faad14'
+    };
+    /**
+     * ## \u5fbd\u6807\u63d2\u4ef6
+     * \u53ea\u80fd\u7528\u4e8eBUI.Component.Controller\u53ca\u5176\u5b50\u7c7b
+     * ### \u57fa\u672c\u4f7f\u7528
+     * {@img badge1.png}
+     * <pre><code>
+     * BUI.use(['bui/common','bui/grid'], function (BUI,Grid) {
+            var button = new BUI.Component.Controller({
+                id:'button',
+                width:90,
+                plugins: [Grid.Plugins.Badge],
+                badgeCfg: {
+                    count: 10,
+                },
+                content:"&lt;button class='button button-success'&gt;\u6d4b\u8bd5\u6309\u94ae&lt;/button&ge;"
+            });
+            button.render();
+        });
+     * </code></pre>
+     * ### \u8d85\u8fc7\u4e00\u5b9a\u6570\u91cf\u7684\u5c55\u793a\u4e3a\u8bbe\u5b9a\u6570\u91cf+
+     * {@img badge2.png}
+     * <pre><code>
+     * BUI.use(['bui/common','bui/grid'], function (BUI,Grid) {
+            var button = new BUI.Component.Controller({
+                id:'button',
+                width:90,
+                plugins: [Grid.Plugins.Badge],
+                badgeCfg: {
+                    count: 10,
+                    overflowCount:5
+                },
+                content:"&lt;button class='button button-success'&gt;\u6d4b\u8bd5\u6309\u94ae&lt;/button&ge;"
+            });
+            button.render();
+        });
+     * </code></pre>
+     * ### \u8bbe\u7f6e\u4e0d\u540c\u72b6\u6001
+     * {@img badge3.png}
+     * <pre><code>
+     * BUI.use(['bui/common','bui/grid'], function (BUI,Grid) {
+            var button = new BUI.Component.Controller({
+                id:'button',
+                width:90,
+                plugins: [Grid.Plugins.Badge],
+                badgeCfg: {
+                    count: 10,
+                    status:'warning'
+                },
+                content:"&lt;button class='button button-success'&gt;\u6d4b\u8bd5\u6309\u94ae&lt;/button&ge;"
+            });
+            button.render();
+        });
+     * </code></pre>
+     * ### \u4e0d\u5c55\u793a\u6570\u5b57\uff0c\u53ea\u5c55\u793a\u5c0f\u5706\u70b9
+     * {@img badge4.png}
+     * <pre><code>
+     * BUI.use(['bui/common','bui/grid'], function (BUI,Grid) {
+            var button = new BUI.Component.Controller({
+                id:'button',
+                width:90,
+                plugins: [Grid.Plugins.Badge],
+                badgeCfg: {
+                    count: 10,
+                    status:'warning',
+                    dot:true
+                },
+                content:"&lt;button class='button button-success'&gt;\u6d4b\u8bd5\u6309\u94ae&lt;/button&ge;"
+            });
+            button.render();
+        });
+     * </code></pre>
+     * ### \u81ea\u5b9a\u4e49\u80cc\u666f\u8272
+     * {@img badge5.png}
+     * <pre><code>
+     * BUI.use(['bui/common','bui/grid'], function (BUI,Grid) {
+            var button = new BUI.Component.Controller({
+                id:'button',
+                width:90,
+                plugins: [Grid.Plugins.Badge],
+                badgeCfg: {
+                    count: 10,
+                    color: '#ff00ff'
+                },
+                content:"&lt;button class='button button-success'&gt;\u6d4b\u8bd5\u6309\u94ae&lt;/button&ge;"
+            });
+            button.render();
+        });
+     * </code></pre>
+     * ### \u5e26\u6709\u6587\u5b57\u63d0\u793a\u7684\u5fbd\u6807
+     * {@img badge6.png}
+     * <pre><code>
+     * BUI.use(['bui/common','bui/grid'], function (BUI,Grid) {
+            var button = new BUI.Component.Controller({
+                id:'button',
+                width:90,
+                plugins: [Grid.Plugins.Badge],
+                badgeCfg: {
+                    count: 10,
+                    text: '\u6d88\u606f'
+                },
+                content:"&lt;button class='button button-success'&gt;\u6d4b\u8bd5\u6309\u94ae&lt;/button&ge;"
+            });
+            button.render();
+        });
+     * </code></pre>
+     *  @class BUI.Grid.Plugins.Badge
+     *  @extends BUI.Base
+     */ 
+    var Badge = function (cfg) {
+        Badge.superclass.constructor.call(this, cfg);
+    };
+    BUI.extend(Badge, BUI.Base);
+    Badge.ATTRS = {
+        /**
+         * ## \u4f7f\u7528\u5fbd\u6807\u63d2\u4ef6\u7684\u7ec4\u4ef6\u9700\u4f20\u5165\u7684\u53c2\u6570\u5217\u8868
+         * 
+         * ---
+         * ###  color: {string} 
+         * \u81ea\u5b9a\u4e49\u5c0f\u5706\u70b9\u989c\u8272  
+         * \u4e0estatus\u540c\u65f6\u8bbe\u7f6e\u65f6\uff0ccolor\u7684\u4f18\u5148\u7ea7\u9ad8\u4e8estatus  
+         * \u652f\u6301\u4ee5\u4e0b\u4e24\u79cd\u5b9a\u4e49\u65b9\u5f0f  
+         * *** Presets: html\u5185\u7f6e\u989c\u8272 ***
+         * 
+         *  - <span style="background-color:pink">pink</span>
+         *  - <span style="background-color:red">red</span>
+         *  - <span style="background-color:yellow">yellow</span>
+         *  - <span style="background-color:orange">orange</span>
+         * 
+         * *** Custom: \u5341\u516d\u8fdb\u5236html\u989c\u8272 ***
+         * 
+         *  - <span style="background-color:#f50">'#f50'</span>
+         *  - <span style="background-color:#2db7f5">'#2db7f5'</span>
+         *  - <span style="background-color:#87d068">'#87d068'</span>
+         *  - <span style="background-color:#108ee9">'#108ee9'</span>
+         * 
+         * ---
+         * ### status: {string}  default error 
+         * *** \u72b6\u6001,\u6839\u636e\u4e0d\u540c\u72b6\u6001\u5c55\u793a\u4e0d\u540c\u989c\u8272\u7684\u5fbd\u6807 ***
+         * 
+         * - <span style="background-color:#52c41a">success</span>
+         * - <span style="background-color:#f5222d">error</span>
+         * - <span style="background-color:#1890ff">processing</span>
+         * - <span style="background-color:#faad14">warning</span>
+         * 
+         * ---
+         * ### count: {number} default 0  
+         * \u5c55\u793a\u7684\u6570\u5b57   
+         * \u5982\u679c\u8bbe\u7f6e\u4e86overflowCount\u53c2\u6570\uff0c\u5927\u4e8e overflowCount \u65f6\u663e\u793a\u4e3a ${overflowCount}+  
+         * 
+         * ---
+         * ### dot: {boolean} default false 
+         * \u4e3atrue\u65f6\u53ea\u663e\u793a\u6709\u4e00\u4e2a\u5706\u70b9  
+         * 
+         * ---
+         * ### overflowCount {number} 
+         * \u5c55\u793a\u5c01\u9876\u7684\u6570\u5b57\u503c     
+         * ${count}\u8d85\u8fc7\u6b64\u503c\u65f6\uff0c\u663e\u793a\u4e3a${overflowCount}+  
+         * 
+         * ---
+         * ### showZero {boolean} default false 
+         * ${count}\u4e3a0\u65f6\uff0c\u662f\u5426\u5c55\u793a\u5fbd\u6807  
+         * \u9ed8\u8ba4\u4e0d\u5c55\u793a  
+         * 
+         * --- 
+         * ### text {string} 
+         * \u8bbe\u7f6e\u6570\u5b57\u524d\u7684\u6587\u672c   
+         * 
+         * @cfg {Object}
+         */
+        badgeCfg: {
+            /**
+             * \u81ea\u5b9a\u4e49\u5c0f\u5706\u70b9\u989c\u8272  
+             * \u4e0estatus\u540c\u65f6\u8bbe\u7f6e\u65f6\uff0ccolor\u7684\u4f18\u5148\u7ea7\u9ad8\u4e8estatus  
+             * \u652f\u6301\u4ee5\u4e0b\u4e24\u79cd\u5b9a\u4e49\u65b9\u5f0f  
+             * ### Presets: html\u5185\u7f6e\u989c\u8272
+             *  - <span style="background-color:pink">pink</span>
+             *  - <span style="background-color:red">red</span>
+             *  - <span style="background-color:yellow">yellow</span>
+             *  - <span style="background-color:orange">orange</span>
+             * 
+             * ### Custom: \u5341\u516d\u8fdb\u5236html\u989c\u8272
+             *  - <span style="background-color:#f50">'#f50'</span>
+             *  - <span style="background-color:#2db7f5">'#2db7f5'</span>
+             *  - <span style="background-color:#87d068">'#87d068'</span>
+             *  - <span style="background-color:#108ee9">'#108ee9'</span>
+             * {?string}
+             * @ignore
+             */
+            color: {},
+            /**
+             * ### \u72b6\u6001,\u6839\u636e\u4e0d\u540c\u72b6\u6001\u5c55\u793a\u4e0d\u540c\u989c\u8272\u7684\u5fbd\u6807
+             * - <span style="background-color:#52c41a">success</span>
+             * - <span style="background-color:#f5222d">error</span>
+             * - <span style="background-color:#1890ff">processing</span>
+             * - <span style="background-color:#faad14">warning</span>
+             *   
+             * default error
+             * {?string}
+             * @ignore
+             * 
+             */
+            status: {},
+            /**
+             * \u5c55\u793a\u7684\u6570\u5b57  
+             * \u5982\u679c\u8bbe\u7f6e\u4e86overflowCount\u53c2\u6570\uff0c\u5927\u4e8e overflowCount \u65f6\u663e\u793a\u4e3a ${overflowCount}+  
+             * default 0  
+             * {number} 
+             * @ignore
+             * 
+             */
+            count: { value: 0 },
+            /**
+             * \u4e3atrue\u65f6\u53ea\u663e\u793a\u6709\u4e00\u4e2a\u5706\u70b9  
+             * default false  
+             * {?boolean}
+             * @ignore
+             * 
+             */
+            dot: { value: false },
+            /**
+             * \u5c55\u793a\u5c01\u9876\u7684\u6570\u5b57\u503c  
+             * ${count}\u8d85\u8fc7\u6b64\u503c\u65f6\uff0c\u663e\u793a\u4e3a${overflowCount}+  
+             * {?number}
+             * @ignore
+             * 
+             */
+            overflowCount: {},
+            /**
+             * ${count}\u4e3a0\u65f6\uff0c\u662f\u5426\u5c55\u793a\u5fbd\u6807  
+             * \u9ed8\u8ba4\u4e0d\u5c55\u793a  
+             * default false  
+             * {?boolean}
+             * @ignore
+             * 
+             */
+            showZero: { value: false },
+            /**
+             * \u8bbe\u7f6e\u6570\u5b57\u524d\u7684\u6587\u672c
+             * {?string}
+             * @ignore
+             * 
+             */
+            text: {}
+        },
+        badgeTpl: {
+            value: '<sup class="{badgeSupCls} eno-badge-sup" style="display: {badgeSupDisplay};{badgeBackgroundColorStyle}">{text}{badgeShowCount}</sup>'
+        }
+    };
+    BUI.augment(Badge, {
+        initializer:function(controller){
+            controller.updateBadge=this.updateBadge.bind(this);
+            this.set('controller',controller);
+        },
+        renderUI: function (controller) {
+            var _self = this;
+            _self.updateBadge();
+        },
+        /**
+         * \u6839\u636e\u914d\u7f6e\u8ba1\u7b97\u9700\u8981\u5c55\u793a\u7684\u503c
+         * @private
+         */
+        _initStatus: function (controller) {
+            var item = controller.get('badgeCfg');
+            var result = {
+                badgeShowCount: item.count,
+                badgeSupCls: 'eno-badge-count eno-badge-multiple-words',
+                badgeSupDisplay :'inline-block',
+                badgeBackgroundColorStyle:'',
+                text:item.text
+            }
+
+            //count\u4e3a0\u65f6\u662f\u5426\u5c55\u793a
+            if (!(item.showZero || item.count)) {
+                result.badgeSupDisplay = 'none';
+            }
+            //\u5224\u65adoverflowCount\u6765\u4fee\u6539\u5c55\u793a\u7684count\u503c
+            if (item.overflowCount && item.count > item.overflowCount) {
+                result.badgeShowCount = item.overflowCount + "+";
+            }
+            //status\u4fee\u6539sup\u80cc\u666f\u8272
+            if (item.status) {
+                result.badgeBackgroundColorStyle = 'background-color:' + STATUS[item.status];
+            }
+            //color\u4fee\u6539sup\u80cc\u666f\u8272
+            if (item.color) {
+                result.badgeBackgroundColorStyle = 'background-color:' + item.color;
+            }
+            //\u6839\u636e\u662f\u5426\u5c55\u793a\u7ea2\u70b9{dot}\u5224\u65adsup\u7684class
+            if (item.dot) {
+                result.badgeSupCls = 'eno-badge-dot';
+                result.text = '';
+                result.badgeShowCount = '';
+            }
+            return result;
+        },
+        /**
+         * \u66f4\u65b0\u5fbd\u6807\uff0c\u91cd\u65b0\u6e32\u67d3\u5fbd\u6807\u5185\u5bb9
+         * <pre><code>
+         * button.on('click',function(){
+         *    button.set('badgeCfg',{count:11,status:'warning'})
+         *    button.updateBadge()
+         * })
+         * </code></pre>
+         */
+        updateBadge: function () {
+            var _self = this,controller = _self.get('controller'), el = controller.get('el');
+            try {
+                //\u8ba1\u7b97\u6bcf\u4e00\u9879item\u5e94\u8be5\u6dfb\u52a0\u7684\u5fbd\u6807
+                var param = _self._initStatus(controller);
+                var suphtml = BUI.substitute(_self.get('badgeTpl'), param);
+                el.find(".eno-badge-sup").remove();
+                el.addClass('eno-badge');
+                el.append(suphtml);
+                //\u6839\u636e\u6dfb\u52a0\u7684\u5fbd\u6807\uff0c\u8ba1\u7b97\u6bcf\u4e00\u4e2aitem\u7684margin
+                var sup = el.find('.eno-badge-sup'),
+                    supWidth = sup.outerWidth(true), supHeight = sup.height();
+                controller.set('elStyle', { marginTop: supHeight / 2, marginRight: supWidth / 2 });
+            } catch (e) {
+                console.log(e)
+            }
+        }
+        
+    });
+    return Badge;
+});/**
  * @fileOverview \u9009\u62e9\u6846\u547d\u540d\u7a7a\u95f4\u5165\u53e3\u6587\u4ef6
  * @ignore
  */
@@ -38165,10 +41441,12 @@ define('bui/tooltip',['bui/common','bui/tooltip/tip','bui/tooltip/tips'],functio
     Tooltip = BUI.namespace('Tooltip'),
     Tip = require('bui/tooltip/tip'),
     Tips = require('bui/tooltip/tips');
+    Badge = require('bui/tooltip/badge');
 
   BUI.mix(Tooltip,{
     Tip : Tip,
-    Tips : Tips
+    Tips : Tips,
+    Badge : Badge
   });
   return Tooltip;
 });/**
@@ -38579,6 +41857,243 @@ define('bui/tooltip/tips',['bui/common','bui/tooltip/tip'],function(require) {
   });
 
   return Tips;
+});/**
+ * @fileoverview \u5fbd\u6807\u7ec4\u4ef6
+ * @author bili
+ * @date 190524
+ */
+define('bui/tooltip/badge', ['bui/common'], function (r) {
+    var BUI = r('bui/common'), Component = BUI.Component,
+    STATUS={
+        success :'#52c41a',
+        error   :'#f5222d',
+        default :'#d9d9d9',
+        processing :'#1890ff',
+        warning :'#faad14'
+    };
+    /**
+     * ## \u5fbd\u6807\u7ec4\u4ef6
+     * ### \u57fa\u672c\u4f7f\u7528
+     * {@img badge1.png demo1}
+     * <pre><code>
+     * BUI.use('bui/tooltip', function (Tooltip) {
+            var badge = new Tooltip.Badge({
+                count: 10,//\u5fbd\u6807\u4e0a\u663e\u793a\u7684\u6570\u91cf
+                children: [
+                    //\u9700\u8981\u663e\u793a\u5fbd\u6807\u7684\u7ec4\u4ef6
+                    {xclass:'controller',content:'&lt;button class="button button-success"&gt;\u6d4b\u8bd5\u6309\u94ae&lt;/button&gt;'},
+                ]
+            });
+            badge.render();
+        });
+     * </code></pre>
+     * ***
+     * ### \u8d85\u8fc7\u4e00\u5b9a\u6570\u91cf\u7684\u5c55\u793a\u4e3a\u8bbe\u5b9a\u6570\u91cf+
+     * {@img badge2.png demo2}
+     * <pre><code>
+     * BUI.use('bui/tooltip', function (Tooltip) {
+            var badge = new Tooltip.Badge({
+                count: 10,//\u5fbd\u6807\u4e0a\u663e\u793a\u7684\u6570\u91cf
+                overflowCount:5, //\u8d85\u51fa\u6b64\u6570\u91cf\u7684\u5c55\u793a\u4e3a5+
+                children: [
+                    //\u9700\u8981\u663e\u793a\u5fbd\u6807\u7684\u7ec4\u4ef6
+                    {xclass:'controller',content:'&lt;button class="button button-success"&gt;\u6d4b\u8bd5\u6309\u94ae&lt;/button&gt;'},
+                ]
+            });
+            badge.render();
+        });
+     * </code></pre>
+     * ***
+     * ### \u8bbe\u7f6e\u4e0d\u540c\u72b6\u6001
+     * {@img badge3.png demo2}
+     * <pre><code>
+     * BUI.use('bui/tooltip', function (Tooltip) {
+            var badge = new Tooltip.Badge({
+                count: 10,//\u5fbd\u6807\u4e0a\u663e\u793a\u7684\u6570\u91cf
+                status:'warning',
+                children: [
+                    //\u9700\u8981\u663e\u793a\u5fbd\u6807\u7684\u7ec4\u4ef6
+                    {xclass:'controller',content:'&lt;button class="button button-success"&gt;\u6d4b\u8bd5\u6309\u94ae&lt;/button&gt;'},
+                ]
+            });
+            badge.render();
+        });
+     * </code></pre>
+     * ***
+     * ### \u4e0d\u5c55\u793a\u6570\u5b57\uff0c\u53ea\u5c55\u793a\u5c0f\u5706\u70b9
+     * {@img badge4.png demo2}
+     * <pre><code>
+     * BUI.use('bui/tooltip', function (Tooltip) {
+            var badge = new Tooltip.Badge({
+                count: 10,//\u5fbd\u6807\u4e0a\u663e\u793a\u7684\u6570\u91cf
+                status:'warning',
+                dot:true,
+                children: [
+                    //\u9700\u8981\u663e\u793a\u5fbd\u6807\u7684\u7ec4\u4ef6
+                    {xclass:'controller',content:'&lt;button class="button button-success"&gt;\u6d4b\u8bd5\u6309\u94ae&lt;/button&gt;'},
+                ]
+            });
+            badge.render();
+        });
+     * </code></pre>
+     * ***
+     * ### \u81ea\u5b9a\u4e49\u80cc\u666f\u8272
+     * {@img badge5.png demo2}
+     * <pre><code>
+     * BUI.use('bui/tooltip', function (Tooltip) {
+            var badge = new Tooltip.Badge({
+                count: 10,//\u5fbd\u6807\u4e0a\u663e\u793a\u7684\u6570\u91cf
+                status:'warning',
+                color:'#ff00ff',
+                children: [
+                    //\u9700\u8981\u663e\u793a\u5fbd\u6807\u7684\u7ec4\u4ef6
+                    {xclass:'controller',content:'&lt;button class="button button-success"&gt;\u6d4b\u8bd5\u6309\u94ae&lt;/button&gt;'},
+                ]
+            });
+            badge.render();
+        });
+     * </code></pre>
+     * ***
+     * @class BUI.Tooltip.Badge
+     * @extends BUI.Component.Controller
+     */
+    return Component.Controller.extend({
+        initializer:function(){
+            this._updateStatus();
+        },
+        /**
+         * \u6839\u636e\u914d\u7f6e\u8ba1\u7b97\u9700\u8981\u5c55\u793a\u7684\u503c
+         * @private
+         */
+        _updateStatus:function(){
+            var _self = this;
+            _self.set('showCount',_self.get('count'));
+            _self.set('supCls','eno-badge-count eno-badge-multiple-words')
+            //count\u4e3a0\u65f6\u662f\u5426\u5c55\u793a
+            if(!(_self.get('showZero') || _self.get('count'))){
+                _self.set('supDisplay','none');
+            }else{
+                _self.set('supDisplay','inline-block');
+            }
+            //\u5224\u65adoverflowCount\u6765\u4fee\u6539\u5c55\u793a\u7684count\u503c
+            if(_self.get('overflowCount')&&_self.get('count')>_self.get('overflowCount')){
+                _self.set('showCount',_self.get('overflowCount')+"+");
+            }
+            //status\u4fee\u6539sup\u80cc\u666f\u8272
+            if(_self.get('status')){
+                _self.set('backgroundColorStyle','background-color:'+STATUS[_self.get('status')]+';')
+            }
+            //color\u4fee\u6539sup\u80cc\u666f\u8272
+            if(_self.get('color')){
+                _self.set('backgroundColorStyle','background-color:'+_self.get('color')+';')
+            }
+            //\u6839\u636e\u662f\u5426\u5c55\u793a\u7ea2\u70b9{dot}\u5224\u65adsup\u7684class
+            if(_self.get('dot')){
+                _self.set('supCls','eno-badge-dot');
+                _self.set('text','');
+                _self.set('showCount','');
+            }
+            return {
+                supCls:_self.get('supCls'),
+                text:_self.get('text'),
+                showCount:_self.get('showCount'),
+                supCls:_self.get('supCls'),
+                supDisplay:_self.get('supDisplay'),
+                backgroundColorStyle:_self.get('backgroundColorStyle'),
+            }
+        },
+        renderUI:function(){
+            var _self = this,el = _self.get('el'),sup = el.find('#eno-badge-sup'),
+            supWidth = sup.outerWidth(true),supHeight = sup.height();
+            _self.set('elStyle',{marginTop:supHeight/2,marginRight:supWidth/2});
+        },
+        /**
+         * \u4fee\u6539\u5c5e\u6027\uff0c\u6839\u636e\u4fee\u6539\u7684\u5c5e\u6027\u91cd\u65b0\u6e32\u67d3\u5fbd\u6807\u5185\u5bb9  
+         * @param {string} \u4fee\u6539\u5c5e\u6027\u7684key \u53c2\u7167config
+         * @param {string} \u4fee\u6539\u5c5e\u6027\u7684\u503c
+         */
+        setStatus:function(key,value){
+            var _self = this,el = _self.get('el');
+            _self.set(key,value);
+            var showParam = _self._updateStatus();
+            el.find("#eno-badge-sup").remove();
+            var html = BUI.substitute(_self.get('tpl'),showParam)
+            el.append(html);
+        }
+    }, {
+            ATTRS: {
+                /**
+                 * \u81ea\u5b9a\u4e49\u5c0f\u5706\u70b9\u989c\u8272  
+                 * \u4e0estatus\u540c\u65f6\u8bbe\u7f6e\u65f6\uff0ccolor\u7684\u4f18\u5148\u7ea7\u9ad8\u4e8estatus  
+                 * \u652f\u6301\u4ee5\u4e0b\u4e24\u79cd\u5b9a\u4e49\u65b9\u5f0f  
+                 * ### Presets: html\u5185\u7f6e\u989c\u8272
+                 *  - <span style="background-color:pink">pink</span>
+                 *  - <span style="background-color:red">red</span>
+                 *  - <span style="background-color:yellow">yellow</span>
+                 *  - <span style="background-color:orange">orange</span>
+                 * 
+                 * ### Custom: \u5341\u516d\u8fdb\u5236html\u989c\u8272
+                 *  - <span style="background-color:#f50">'#f50'</span>
+                 *  - <span style="background-color:#2db7f5">'#2db7f5'</span>
+                 *  - <span style="background-color:#87d068">'#87d068'</span>
+                 *  - <span style="background-color:#108ee9">'#108ee9'</span>
+                 * @cfg {?string}
+                 */
+                color:{},
+                /**
+                 * ### \u72b6\u6001,\u6839\u636e\u4e0d\u540c\u72b6\u6001\u5c55\u793a\u4e0d\u540c\u989c\u8272\u7684\u5fbd\u6807
+                 * - <span style="background-color:#52c41a">success</span>
+                 * - <span style="background-color:#f5222d">error</span>
+                 * - <span style="background-color:#1890ff">processing</span>
+                 * - <span style="background-color:#faad14">warning</span>
+                 *   
+                 * default error
+                 * @cfg {?string}
+                 */
+                status:{},
+                /**
+                 * \u5c55\u793a\u7684\u6570\u5b57  
+                 * \u5982\u679c\u8bbe\u7f6e\u4e86overflowCount\u53c2\u6570\uff0c\u5927\u4e8e overflowCount \u65f6\u663e\u793a\u4e3a ${overflowCount}+  
+                 * default 0  
+                 * @cfg {number} 
+                 */
+                count:{value:0},
+                /**
+                 * \u4e3atrue\u65f6\u53ea\u663e\u793a\u6709\u4e00\u4e2a\u5706\u70b9  
+                 * default false  
+                 * @cfg {?boolean}
+                 */
+                dot:{value:false},
+                /**
+                 * \u5c55\u793a\u5c01\u9876\u7684\u6570\u5b57\u503c  
+                 * ${count}\u8d85\u8fc7\u6b64\u503c\u65f6\uff0c\u663e\u793a\u4e3a${overflowCount}+  
+                 * @cfg {?number}
+                 */
+                overflowCount:{},
+                /**
+                 * ${count}\u4e3a0\u65f6\uff0c\u662f\u5426\u5c55\u793a\u5fbd\u6807  
+                 * \u9ed8\u8ba4\u4e0d\u5c55\u793a  
+                 * default false  
+                 * @cfg {?boolean}
+                 */
+                showZero:{value:false},
+                /**
+                 * \u8bbe\u7f6e\u6570\u5b57\u524d\u7684\u6587\u672c
+                 * @cfg {?string}
+                 */
+                text:{},
+                tpl:{
+                    value:'<sup class="{supCls}" id="eno-badge-sup" style="display: {supDisplay};{backgroundColorStyle}">{text}{showCount}</sup>'
+                },
+                elTagName:{
+                    value:'span'
+                },
+                elCls:{
+                    // value:'eno-badge-content'
+                    value:'eno-badge'
+                }
+            }
+        });
 });(function () {
   
   if(BUI.loaderScript.getAttribute('data-auto-use') == 'false'){
