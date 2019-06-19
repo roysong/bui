@@ -12,6 +12,7 @@ define('bui/transfer/simpletransfer',
 	Transfer = require('bui/transfer/transfer');
 	/**
 	* 简单穿梭框组件 <br>
+	* ==注意：该组件使用Flex布局，组件样式需使用bs3编译压缩==
 	* xclass : 'simple-transfer'
 	* 
 	* ##应用场景：适用于列表数据量小于或等于20条的简单业务场景。 <br>

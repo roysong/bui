@@ -12,6 +12,7 @@ define('bui/transfer/transfer',
 	var MIDDLE_MAX_WIDTH = 120;
 	/**
 	* 穿梭框组件 <br>
+	* ==注意：该组件使用Flex布局，组件样式需使用bs3编译压缩==
 	* xclass : 'transfer'
 	*
 	* ##应用场景要求（针对左侧和右侧）： <br>
