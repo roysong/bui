@@ -30,8 +30,9 @@ define('bui/toolbar/steps', [
             xclass: 'steps-view'
         });
     /**
-     * 步骤条
-     * xclass : 'steps'
+     * 步骤条  
+     * **使用了flex布局,低版本浏览器谨慎使用**  
+     * xclass : 'steps'  
      * ## 静态展示，只在item中设置状态
      * 每个item设置不同的状态进行展示
      *{@img step-demo1.png demo1}

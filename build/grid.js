@@ -2856,7 +2856,8 @@ define('bui/grid/format',function (require) {
 ;(function(){
 var BASE = 'bui/grid/plugins/';
 define('bui/grid/plugins',['bui/common',BASE + 'selection',BASE + 'cascade',BASE + 'cellediting',BASE + 'rowediting',BASE + 'autofit',
-	BASE + 'dialogediting',BASE + 'menu',BASE + 'summary',BASE + 'rownumber',BASE + 'columngroup',BASE + 'rowgroup',BASE + 'columnresize'],function (r) {
+	BASE + 'dialogediting',BASE + 'menu',BASE + 'summary',BASE + 'rownumber',BASE + 'columngroup',BASE + 'rowgroup',
+	BASE + 'columnresize', BASE + 'rowmark'],function (r) {
 	var BUI = r('bui/common'),
 		Selection = r(BASE + 'selection'),
 
@@ -2875,7 +2876,9 @@ define('bui/grid/plugins',['bui/common',BASE + 'selection',BASE + 'cascade',BASE
 			RowNumber : r(BASE + 'rownumber'),
 			ColumnGroup : r(BASE + 'columngroup'),
 			RowGroup : r(BASE + 'rowgroup'),
-			ColumnResize : r(BASE + 'columnresize')
+			ColumnResize : r(BASE + 'columnresize'),
+			RowMark : r(BASE + 'rowmark'),
+			Badge : r(BASE + 'badge')
 		});
 		
 	return Plugins;
@@ -5868,4 +5871,520 @@ define('bui/grid/plugins/columnresize',function (require) {
   });
 
   return Resize;
+});/**
+ * @fileOverview Row Mark 行列数据颜色标记及其图例展示插件
+ * @ignore
+ * @author lilt
+ * @since 2019-05-17 19:11:28
+ */
+define('bui/grid/plugins/rowmark',['bui/common','bui/toolbar'], function(require) {
+  var Toolbar = require('bui/toolbar'), ROWNUMBER_CLS_NUMBER = 'x-grid-rownumber';
+    /**
+     * grid插件 
+     * <pre><code>
+     *   var columns = [
+     *      {title : '表头1',dataIndex :'a', width:100},
+     *      {id: '123',title : '表头2',dataIndex :'b', width:100},
+     *      {title : '表头3',dataIndex : 'c',width:200}
+     *    ],
+     *   data = [{a:'123', status: 1},{a:'cdd',b:'edd', status : 0},{a:'1333',c:'eee',d:2, status:2},{a:'1232',b:'eeewe',c:'ww1231',status:3}];
+     *   var rowMark = new Grid.Plugins.RowMark({
+     *        statusField: 'status',
+     *        items : [
+     *            {name : '红色', color:'red', value : 1}, // data中对应元素 status = 1 的数据
+     *            {name : '蓝色', color:'blue', value : 2},  // data中对应元素 status = 2 的数据
+     *            {name : '自定义', color:'#9966ff', value : 3} // data中对应元素 status = 3的数据
+     *         // {name : '默认色', color : '#000'}  data中对应元素 status < 1 或 status > 3 的数据均使用其默认色
+     *        ]      
+     *    });
+     *  var store = new Store({
+     *      data : data
+     *    }),
+     *    grid = new Grid.Grid({
+     *      render:'#grid',
+     *      columns : columns,
+     *      idField : 'a',
+     *      store : store,
+     *       plugins : [rowMark] // 插件形式引入表格 
+     *    });
+     *  grid.render();
+     * </code></pre>
+     * 
+     * Tree-grid插件
+     * <pre><code>
+     * var data = [ 
+     *     {text : '1',id : '1',a:'a1',b:'b1',status: 0,children: [{text : '11',id : '11',a:'a11',b:'b11',status:1}]},
+     *     {text : '2',id : '2',a:'a2',b:'b2',status: 1,expanded : true,children : [
+     *         {text : '21',id : '21',a:'a21',b:'b21',status: 2,children : [{text : '211',id : '211',a:'a211',b:'b211',status: 0},{text : '212',id : '212',a:'a212',b:'b212',status: 2}]},
+     *         {text : '22',id : '22',a:'a22',b:'b22',status: 0}
+     *     ]},
+     *     {text : '3',id : '3',a:'a3',b:'b3',status: 2},
+     *     {text : '4',id : '4',a:'a4',b:'b4',status: 3}
+     *   ];
+     * var rowMark = new Grid.Plugins.RowMark({
+     *     statusField: 'status',
+     *     items : [
+     *         {name : '红色', color:'red', value : 1}, // data中对应元素 status = 1 的数据
+     *         {name : '蓝色', color:'blue', value : 2}, // data中对应元素 status = 2 的数据
+     *         {name : '自定义', color:'#9966ff', value : 3} // data中对应元素 status = 3的数据
+     *      // {name : '默认色', color : '#000'}  data中对应元素 status < 1 或 status > 3 的数据均使用其默认色
+     *     ]      
+     * });
+     * var tree = new TreeGrid({
+     *   render : '#t1',
+     *   nodes : data,
+     *   columns : [
+     *     {title : '表头1',dataIndex :'text',width:300}, 
+     *     {title : '表头2',dataIndex :'a',width:100}, 
+     *     {title : '表头3',dataIndex : 'b',width:100}
+     *   ],
+     *   height:250,
+     *   plugins : [rowMark] // 插件形式引入表格
+     * });
+     * tree.render();
+     * </code></pre>
+     * 
+     * @class BUI.Grid.Plugins.RowMark  列表根据状态标记行列颜色及工具栏显示图例插件
+     */
+    function RowMark(config){
+      RowMark.superclass.constructor.call(this, config);
+    }
+
+    BUI.extend(RowMark,BUI.Base);
+    
+    RowMark.ATTRS = 
+    {
+      /**
+       * 根据状态值待标记颜色的grid中的data数据字段
+       * @type  {String} [statusField = 'status']
+       */
+      statusField : {
+        value : 'status'
+      },
+      /**
+       * 状态值对应的图例标签名及颜色，value对应的statusField字段的取值，即 statusField=value;
+       * grid中对应statusField的未在items中列出的值时默认为黑色
+       * <p>
+       *  默认情况下，行列标记的规则为grid的data数组中status为true的数据渲染为红色，其余默认为黑色。
+       * </p>
+       * @type {Object} item:[{name:'', color:'', value: ''}...]
+       */
+      items : [
+        {name : '红色', color : 'red', value : true},
+        {name : '默认色', color : 'black', value : false}
+      ]
+
+    };
+
+    BUI.augment(RowMark, {
+      // 创建图例
+      createDom :  function(grid){
+        var _self = this, items = _self.get('items');
+        _self._initLegend(grid, items);
+      },
+      // 根据状态数据值的配置标记每行数据的颜色
+      bindUI : function(grid){
+        var _self = this, statusField  = _self.get('statusField'), items = _self.get('items');
+        grid.on('rowcreated', function(e){
+          var value = e.record[statusField], color = _self._getColorFromItems(items, value); // 获取状态值对应值的标记颜色
+          if(color) { // 若获取到了该行待渲染的颜色值则为其更改成指定颜色，否则使用默认行列文字颜色：黑色
+            $(e.domTarget).children(':not(.'+ ROWNUMBER_CLS_NUMBER +')').css({color : color}); // dom选择除行号外的其他数据单元格渲染颜色
+          }
+        });
+      },
+      /**
+       * 初始化表格右上方工具栏中的图例展示
+       * @param {*} grid 
+       * @param {*} items 
+       * @private
+       */
+      _initLegend : function(grid, items){
+        var _self = this, tbar = grid.get('tbar'), legendItems = [];
+        BUI.each(items, function(item){
+          var color = item.color;
+          // 若对象未指定颜色，则生成随机色
+          if(!color) {
+            color = _self.getRandomColor();
+            item.color = color;
+          }
+          legendItems.push({
+            content : '<span style="background-color: '+ color +';display:inline-block;width:10px;height:10px;margin-right:3px;"></span>--'+item.name
+          });
+        });
+        // 封装图例创建对象
+        var tbarObject = {
+          elCls : 'pull-right',
+          items : legendItems 
+        };
+        if(tbar){ // grid已存在工具栏信息，则向工具栏增加右侧图例组件
+          tbar.addChild(new Toolbar.Bar(tbarObject));
+        } else{ // grid不存在工具栏信息，则向grid添加工具栏配置对象
+          grid.set('tbar', tbarObject);
+        }
+        _self.set('items', items);
+      },
+      // 根据状态标记字段值获取对应该行待渲染的颜色
+      _getColorFromItems : function(items, value){
+        var color; 
+        BUI.each(items, function(item){
+          if(item.value == value) color = item.color; 
+        });
+        return color;
+      },
+      /**
+       * 获取一个随机色
+       * @protected 
+       * @return {String} ‘#000000’格式的颜色字符串
+       */
+      getRandomColor : function () {
+        var r = Math.round(Math.random() * 255), g = Math.round(Math.random() * 255), b = Math.round(Math.random() * 255);
+        var color = r << 16 | g << 8 | b;
+        return "#" + color.toString(16)
+      }
+    });
+  
+    return RowMark;
+});
+/**
+ * @fileOverview badge 徽标
+ * @author bili
+ * @ignore
+ */
+define('bui/grid/plugins/badge', ['bui/common'], function (require) {
+    var BUI = require('bui/common'),
+        UA = BUI.UA;
+    /**
+     * 根据 HSB 色彩模型进行设计，平衡了可读性、美感以及可用性得出
+     */
+    STATUS = {
+        success: '#52c41a',
+        error: '#f5222d',
+        default: '#d9d9d9',
+        processing: '#1890ff',
+        warning: '#faad14'
+    };
+    /**
+     * ## 徽标插件
+     * 只能用于BUI.Component.Controller及其子类
+     * ### 基本使用
+     * {@img badge1.png}
+     * <pre><code>
+     * BUI.use(['bui/common','bui/grid'], function (BUI,Grid) {
+            var button = new BUI.Component.Controller({
+                id:'button',
+                width:90,
+                plugins: [Grid.Plugins.Badge],
+                badgeCfg: {
+                    count: 10,
+                },
+                content:"&lt;button class='button button-success'&gt;测试按钮&lt;/button&ge;"
+            });
+            button.render();
+        });
+     * </code></pre>
+     * ### 超过一定数量的展示为设定数量+
+     * {@img badge2.png}
+     * <pre><code>
+     * BUI.use(['bui/common','bui/grid'], function (BUI,Grid) {
+            var button = new BUI.Component.Controller({
+                id:'button',
+                width:90,
+                plugins: [Grid.Plugins.Badge],
+                badgeCfg: {
+                    count: 10,
+                    overflowCount:5
+                },
+                content:"&lt;button class='button button-success'&gt;测试按钮&lt;/button&ge;"
+            });
+            button.render();
+        });
+     * </code></pre>
+     * ### 设置不同状态
+     * {@img badge3.png}
+     * <pre><code>
+     * BUI.use(['bui/common','bui/grid'], function (BUI,Grid) {
+            var button = new BUI.Component.Controller({
+                id:'button',
+                width:90,
+                plugins: [Grid.Plugins.Badge],
+                badgeCfg: {
+                    count: 10,
+                    status:'warning'
+                },
+                content:"&lt;button class='button button-success'&gt;测试按钮&lt;/button&ge;"
+            });
+            button.render();
+        });
+     * </code></pre>
+     * ### 不展示数字，只展示小圆点
+     * {@img badge4.png}
+     * <pre><code>
+     * BUI.use(['bui/common','bui/grid'], function (BUI,Grid) {
+            var button = new BUI.Component.Controller({
+                id:'button',
+                width:90,
+                plugins: [Grid.Plugins.Badge],
+                badgeCfg: {
+                    count: 10,
+                    status:'warning',
+                    dot:true
+                },
+                content:"&lt;button class='button button-success'&gt;测试按钮&lt;/button&ge;"
+            });
+            button.render();
+        });
+     * </code></pre>
+     * ### 自定义背景色
+     * {@img badge5.png}
+     * <pre><code>
+     * BUI.use(['bui/common','bui/grid'], function (BUI,Grid) {
+            var button = new BUI.Component.Controller({
+                id:'button',
+                width:90,
+                plugins: [Grid.Plugins.Badge],
+                badgeCfg: {
+                    count: 10,
+                    color: '#ff00ff'
+                },
+                content:"&lt;button class='button button-success'&gt;测试按钮&lt;/button&ge;"
+            });
+            button.render();
+        });
+     * </code></pre>
+     * ### 带有文字提示的徽标
+     * {@img badge6.png}
+     * <pre><code>
+     * BUI.use(['bui/common','bui/grid'], function (BUI,Grid) {
+            var button = new BUI.Component.Controller({
+                id:'button',
+                width:90,
+                plugins: [Grid.Plugins.Badge],
+                badgeCfg: {
+                    count: 10,
+                    text: '消息'
+                },
+                content:"&lt;button class='button button-success'&gt;测试按钮&lt;/button&ge;"
+            });
+            button.render();
+        });
+     * </code></pre>
+     *  @class BUI.Grid.Plugins.Badge
+     *  @extends BUI.Base
+     */ 
+    var Badge = function (cfg) {
+        Badge.superclass.constructor.call(this, cfg);
+    };
+    BUI.extend(Badge, BUI.Base);
+    Badge.ATTRS = {
+        /**
+         * ## 使用徽标插件的组件需传入的参数列表
+         * 
+         * ---
+         * ###  color: {string} 
+         * 自定义小圆点颜色  
+         * 与status同时设置时，color的优先级高于status  
+         * 支持以下两种定义方式  
+         * *** Presets: html内置颜色 ***
+         * 
+         *  - <span style="background-color:pink">pink</span>
+         *  - <span style="background-color:red">red</span>
+         *  - <span style="background-color:yellow">yellow</span>
+         *  - <span style="background-color:orange">orange</span>
+         * 
+         * *** Custom: 十六进制html颜色 ***
+         * 
+         *  - <span style="background-color:#f50">'#f50'</span>
+         *  - <span style="background-color:#2db7f5">'#2db7f5'</span>
+         *  - <span style="background-color:#87d068">'#87d068'</span>
+         *  - <span style="background-color:#108ee9">'#108ee9'</span>
+         * 
+         * ---
+         * ### status: {string}  default error 
+         * *** 状态,根据不同状态展示不同颜色的徽标 ***
+         * 
+         * - <span style="background-color:#52c41a">success</span>
+         * - <span style="background-color:#f5222d">error</span>
+         * - <span style="background-color:#1890ff">processing</span>
+         * - <span style="background-color:#faad14">warning</span>
+         * 
+         * ---
+         * ### count: {number} default 0  
+         * 展示的数字   
+         * 如果设置了overflowCount参数，大于 overflowCount 时显示为 ${overflowCount}+  
+         * 
+         * ---
+         * ### dot: {boolean} default false 
+         * 为true时只显示有一个圆点  
+         * 
+         * ---
+         * ### overflowCount {number} 
+         * 展示封顶的数字值     
+         * ${count}超过此值时，显示为${overflowCount}+  
+         * 
+         * ---
+         * ### showZero {boolean} default false 
+         * ${count}为0时，是否展示徽标  
+         * 默认不展示  
+         * 
+         * --- 
+         * ### text {string} 
+         * 设置数字前的文本   
+         * 
+         * @cfg {Object}
+         */
+        badgeCfg: {
+            /**
+             * 自定义小圆点颜色  
+             * 与status同时设置时，color的优先级高于status  
+             * 支持以下两种定义方式  
+             * ### Presets: html内置颜色
+             *  - <span style="background-color:pink">pink</span>
+             *  - <span style="background-color:red">red</span>
+             *  - <span style="background-color:yellow">yellow</span>
+             *  - <span style="background-color:orange">orange</span>
+             * 
+             * ### Custom: 十六进制html颜色
+             *  - <span style="background-color:#f50">'#f50'</span>
+             *  - <span style="background-color:#2db7f5">'#2db7f5'</span>
+             *  - <span style="background-color:#87d068">'#87d068'</span>
+             *  - <span style="background-color:#108ee9">'#108ee9'</span>
+             * {?string}
+             * @ignore
+             */
+            color: {},
+            /**
+             * ### 状态,根据不同状态展示不同颜色的徽标
+             * - <span style="background-color:#52c41a">success</span>
+             * - <span style="background-color:#f5222d">error</span>
+             * - <span style="background-color:#1890ff">processing</span>
+             * - <span style="background-color:#faad14">warning</span>
+             *   
+             * default error
+             * {?string}
+             * @ignore
+             * 
+             */
+            status: {},
+            /**
+             * 展示的数字  
+             * 如果设置了overflowCount参数，大于 overflowCount 时显示为 ${overflowCount}+  
+             * default 0  
+             * {number} 
+             * @ignore
+             * 
+             */
+            count: { value: 0 },
+            /**
+             * 为true时只显示有一个圆点  
+             * default false  
+             * {?boolean}
+             * @ignore
+             * 
+             */
+            dot: { value: false },
+            /**
+             * 展示封顶的数字值  
+             * ${count}超过此值时，显示为${overflowCount}+  
+             * {?number}
+             * @ignore
+             * 
+             */
+            overflowCount: {},
+            /**
+             * ${count}为0时，是否展示徽标  
+             * 默认不展示  
+             * default false  
+             * {?boolean}
+             * @ignore
+             * 
+             */
+            showZero: { value: false },
+            /**
+             * 设置数字前的文本
+             * {?string}
+             * @ignore
+             * 
+             */
+            text: {}
+        },
+        badgeTpl: {
+            value: '<sup class="{badgeSupCls} eno-badge-sup" style="display: {badgeSupDisplay};{badgeBackgroundColorStyle}">{text}{badgeShowCount}</sup>'
+        }
+    };
+    BUI.augment(Badge, {
+        initializer:function(controller){
+            controller.updateBadge=this.updateBadge.bind(this);
+            this.set('controller',controller);
+        },
+        renderUI: function (controller) {
+            var _self = this;
+            _self.updateBadge();
+        },
+        /**
+         * 根据配置计算需要展示的值
+         * @private
+         */
+        _initStatus: function (controller) {
+            var item = controller.get('badgeCfg');
+            var result = {
+                badgeShowCount: item.count,
+                badgeSupCls: 'eno-badge-count eno-badge-multiple-words',
+                badgeSupDisplay :'inline-block',
+                badgeBackgroundColorStyle:'',
+                text:item.text
+            }
+
+            //count为0时是否展示
+            if (!(item.showZero || item.count)) {
+                result.badgeSupDisplay = 'none';
+            }
+            //判断overflowCount来修改展示的count值
+            if (item.overflowCount && item.count > item.overflowCount) {
+                result.badgeShowCount = item.overflowCount + "+";
+            }
+            //status修改sup背景色
+            if (item.status) {
+                result.badgeBackgroundColorStyle = 'background-color:' + STATUS[item.status];
+            }
+            //color修改sup背景色
+            if (item.color) {
+                result.badgeBackgroundColorStyle = 'background-color:' + item.color;
+            }
+            //根据是否展示红点{dot}判断sup的class
+            if (item.dot) {
+                result.badgeSupCls = 'eno-badge-dot';
+                result.text = '';
+                result.badgeShowCount = '';
+            }
+            return result;
+        },
+        /**
+         * 更新徽标，重新渲染徽标内容
+         * <pre><code>
+         * button.on('click',function(){
+         *    button.set('badgeCfg',{count:11,status:'warning'})
+         *    button.updateBadge()
+         * })
+         * </code></pre>
+         */
+        updateBadge: function () {
+            var _self = this,controller = _self.get('controller'), el = controller.get('el');
+            try {
+                //计算每一项item应该添加的徽标
+                var param = _self._initStatus(controller);
+                var suphtml = BUI.substitute(_self.get('badgeTpl'), param);
+                el.find(".eno-badge-sup").remove();
+                el.addClass('eno-badge');
+                el.append(suphtml);
+                //根据添加的徽标，计算每一个item的margin
+                var sup = el.find('.eno-badge-sup'),
+                    supWidth = sup.outerWidth(true), supHeight = sup.height();
+                controller.set('elStyle', { marginTop: supHeight / 2, marginRight: supWidth / 2 });
+            } catch (e) {
+                console.log(e)
+            }
+        }
+        
+    });
+    return Badge;
 });
