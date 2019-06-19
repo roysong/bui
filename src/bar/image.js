@@ -3,7 +3,7 @@
  * @author zhengwm
  * @date 190520
  */
-define('bui/toolbar/image',['bui/common'],function(require){
+define('bui/image/image',['bui/common'],function(require){
 
 	var BUI = require('bui/common'),
 		Component = BUI.Component,
@@ -13,7 +13,7 @@ define('bui/toolbar/image',['bui/common'],function(require){
 	 * ##创建对象
 	 * <pre>
 	 * <code>
-	 * BUI.use(['bui/toolbar/image'],function(Image){
+	 * BUI.use(['bui/image/image'],function(Image){
 		    var img = new Image({
 				render : '#j_layout',
 				src: 'E:/workspace/dks.png'
@@ -22,7 +22,7 @@ define('bui/toolbar/image',['bui/common'],function(require){
 		});
 	 * </code>
 	 * </pre>
-	 * @class BUI.Toolbar.Image
+	 * @class BUI.Image.Image
 	 * @extends BUI.Component.Controller
 	 */
 	var Image = Component.Controller.extend({

@@ -3,7 +3,7 @@
  * @author zhengwm
  * @date 190520
  */
-define('bui/toolbar/commonLabel',	['bui/common'], function(require){
+define('bui/label/commonLabel',	['bui/common'], function(require){
 	var BUI = require('bui/common'),
 	ELC_LABEL =  BUI.prefix + "common-label";
 	var CommonLabel = BUI.Component.Controller.extend({

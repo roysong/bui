@@ -3,22 +3,22 @@
  * @author zhengwm
  * @date 190520
  */
-define('bui/toolbar/portalItem',['bui/common', 'bui/list', 'bui/toolbar/image', 'bui/toolbar/commonLabel'],function(require){
+define('bui/layout/portalItem',['bui/common', 'bui/list', 'bui/image/image', 'bui/label/commonLabel'],function(require){
 
 	var BUI = require('bui/common'),
 		Component = BUI.Component,
 		List = require('bui/list'),
-		Image = require('bui/toolbar/image'),
-		CommonLabel = require('bui/toolbar/commonLabel'),
+		Image = require('bui/image/image'),
+		CommonLabel = require('bui/label/commonLabel'),
 		ELC_ITEM = BUI.prefix + 'portal-item';
 	/**
 	 * 上图片下文字描述
 	 * ##单文字显示
 	 * <pre>
 	 * <code>
-	 * BUI.use(['bui/toolbar/portalItem'],function(PortalItem){
+	 * BUI.use(['bui/layout/portalItem'],function(PortalItem){
 			var pi = new PortalItem({
-				render : '#j_toolbar',
+				render : '#j_layout',
 				item : {type:'1', elStyle:{'width':200}, singleText:{text:'车间用户', elStyle:{'color':'red'}}}
 			});
 			pi.render();
@@ -31,9 +31,9 @@ define('bui/toolbar/portalItem',['bui/common', 'bui/list', 'bui/toolbar/image', 
 	 * ##多行文字显示
 	 * <pre>
 	 * <code>
-	 * BUI.use(['bui/toolbar/portalItem'],function(PortalItem){
+	 * BUI.use(['bui/layout/portalItem'],function(PortalItem){
 			var pi = new PortalItem({
-				render : '#j_toolbar',
+				render : '#j_layout',
 				item : {type:'2',  multiText: [{text:'星期三'},{text:'21', elStyle:{'font-size':40}}]}
 			});
 			pi.render();
@@ -46,9 +46,9 @@ define('bui/toolbar/portalItem',['bui/common', 'bui/list', 'bui/toolbar/image', 
 	 * ##单图片显示
 	 * <pre>
 	 * <code>
-	 * BUI.use(['bui/toolbar/portalItem'],function(PortalItem){
+	 * BUI.use(['bui/layout/portalItem'],function(PortalItem){
 			var pi = new PortalItem({
-				render : '#j_toolbar',
+				render : '#j_layout',
 				item : {type:'3',src:'E:/bui/55/cj.png', elStyle:{'background-color':'red'}}
 			});
 			pi.render();
@@ -61,9 +61,9 @@ define('bui/toolbar/portalItem',['bui/common', 'bui/list', 'bui/toolbar/image', 
 	 * ##图片和文字显示
 	 * <pre>
 	 * <code>
-	 * BUI.use(['bui/toolbar/portalItem'],function(PortalItem){
+	 * BUI.use(['bui/layout/portalItem'],function(PortalItem){
 			var pi = new PortalItem({
-				render : '#j_toolbar',
+				render : '#j_layout',
 				item : {type:'4',src:'E:/bui/55/gq.png', singleText:{text: '工区用户'}}
 			});
 			pi.render();
@@ -73,7 +73,7 @@ define('bui/toolbar/portalItem',['bui/common', 'bui/list', 'bui/toolbar/image', 
 		});
 	 * </code>
 	 * </pre>
-	 * @class BUI.Toolbar.PortalItem
+	 * @class BUI.Layout.PortalItem
 	 * @extends BUI.Component.Controller
 	 */
 	var PortalItem = Component.Controller.extend({
@@ -145,39 +145,26 @@ define('bui/toolbar/portalItem',['bui/common', 'bui/list', 'bui/toolbar/image', 
 		renderUI : function() {
 			var _self = this,imgContainer=_self.getChild('imgContainer', true),labelContainer=_self.getChild('labelContainer', true),
 			portal_image = _self.getChild('portal_image', true);
-			//将数据中设定的样式与本身样式进行绑定
-			if(_self.get('item').elStyle != undefined){
-				_self.set('elStyle', _self.get('item').elStyle);
-				_self.set('width',  _self.get('item').elStyle.width);
-				_self.set('height', _self.get('item').elStyle.height);
-			}
-			if(_self.get('item').width != undefined){
-				_self.set('width', _self.get('item').width);
-			}
-			if(_self.get('item').height != undefined){
-				_self.set('height', _self.get('item').height);
-			}			
-			
 			if(imgContainer && labelContainer){
-				//计算图片的高度和文字的高度				
-				imgContainer.set('height', parseFloat(_self.get('height'))/3*2);
+				//计算图片的高度和文字的高度
+				imgContainer.set('height', _self.get('height')/3*2);
 				labelContainer.set('height', _self.get('height') - imgContainer.get('height'));
 				portal_image.set('height', imgContainer.get('height'));
-				portal_image.set('width', imgContainer.get('width'));
 				_self._redefineDisplay(imgContainer);
 				_self._redefineDisplay(labelContainer);
 			} else if(imgContainer) {
 				//图片容器高度与主容器高度一致
 				imgContainer.set('height', _self.get('height'));
-				portal_image.set('height', imgContainer.get('height'));
-				portal_image.set('width', imgContainer.get('width'));
 				_self._redefineDisplay(imgContainer);
 			} else {
 				//文字容器高度与主容器高度一致
 				labelContainer.set('height',_self.get('height'));
 				_self._redefineDisplay(labelContainer);
 			}
-			
+			//将数据中设定的样式与本身样式进行绑定
+			if(_self.get('item').elStyle != undefined){
+				_self.set('elStyle', _self.get('item').elStyle);
+			}
 		},		
 		/**
 		 * 重定义容器为flex布局，并居中显示
@@ -268,7 +255,7 @@ define('bui/toolbar/portalItem',['bui/common', 'bui/list', 'bui/toolbar/image', 
              *   });
              *  </code></pre>
              */
-			elStyle : {value : {width:100,height:100}},
+			elStyle : {value : {}},
 			/**
              * 控件根节点应用的样式
              * <pre><code>
@@ -304,7 +291,7 @@ define('bui/toolbar/portalItem',['bui/common', 'bui/list', 'bui/toolbar/image', 
 				value :{
 				  /**点击分类图标，获取对应的类型对象，并抛出此事件
 		           * @event
-		           * @name BUI.toolbar.PortalItem#itemClick
+		           * @name BUI.Layout.PortalItem#itemClick
 		           * @param {Object} e 点击事件
 		           * @param {Object} e.item 类型对象
 		           */
