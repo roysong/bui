@@ -159,8 +159,8 @@ define('bui/toolbar/steps', [
             }
         },
         /**
-         * 修改current，重新渲染步骤条
-         * @param {number} 当前步骤 
+         * 选中item去修改current，重新渲染步骤条
+         * @param {item} 当前步骤 
          */
         setCurrent: function (item) {
             var _self = this, current = -1;
@@ -171,6 +171,32 @@ define('bui/toolbar/steps', [
             });
             if (current > 0) {
                 _self.set('current', current);
+                _self.set('items', _self._formatItems());
+                _self.get('items').forEach(function (item) {
+                    _self.updateItem(item)
+                });
+            }
+        },
+        /**
+         * 下一步
+         */
+        nextCurrent: function(){
+            var _self = this,current = _self.get('current');
+            if(current+1<=_self.get("items").length){
+                _self.set('current', current+1);
+                _self.set('items', _self._formatItems());
+                _self.get('items').forEach(function (item) {
+                    _self.updateItem(item)
+                });
+            }
+        },
+         /**
+         * 上一步
+         */
+        prevCurrent: function(){
+            var _self = this,current = _self.get('current');
+            if(current-1>0){
+                _self.set('current', current-1);
                 _self.set('items', _self._formatItems());
                 _self.get('items').forEach(function (item) {
                     _self.updateItem(item)
