@@ -27362,7 +27362,7 @@ define('bui/tab/tabpanel',['bui/common','bui/tab/tab','bui/tab/panels'],function
  * @ignore
  */
 
-define('bui/toolbar',['bui/common','bui/toolbar/baritem','bui/toolbar/breadcrumb','bui/toolbar/bar','bui/toolbar/pagingbar','bui/toolbar/numberpagingbar'],function (require) {
+define('bui/toolbar',['bui/common','bui/toolbar/baritem','bui/toolbar/breadcrumb','bui/toolbar/bar','bui/toolbar/pagingbar','bui/toolbar/numberpagingbar','bui/toolbar/portal','bui/toolbar/portalItem','bui/toolbar/steps'],function (require) {
   var BUI = require('bui/common'),
     Toolbar = BUI.namespace('Toolbar');
 
@@ -27372,6 +27372,8 @@ define('bui/toolbar',['bui/common','bui/toolbar/baritem','bui/toolbar/breadcrumb
     Breadcrumb : require('bui/toolbar/breadcrumb'),
     PagingBar : require('bui/toolbar/pagingbar'),
     NumberPagingBar : require('bui/toolbar/numberpagingbar'),
+    Portal : require('bui/toolbar/portal'),
+    PortalItem : require('bui/toolbar/portalItem'),
     Steps : require('bui/toolbar/steps')
   });
   return Toolbar;
@@ -27612,12 +27614,158 @@ define('bui/toolbar/baritem',function(){
     priority : 2  
   });
   
+  /**
+  * \u5de5\u5177\u680f\u7684\u5b50\u9879\uff0c\u4e0a\u56fe\u4e0b\u6587\u5b57\u7684\u7ec4\u4ef6<br/>
+  * \u5728\u4f7f\u7528\u672c\u7ec4\u4ef6\u65f6\uff0c\u6ce8\u610f\uff1a\u7ec4\u4ef6\u7684\u9ad8\u5ea6 = \u56fe\u7247\u7684\u9ad8\u5ea6 + \u6587\u672c\u7684\u9ad8\u5ea6 + 20\uff1b\u5373 height = imgHeight + textHeight + 20px;<br/>
+  * <pre><code>
+  * &lt;div id="bar"&gt;
+  * &lt;/div&gt;
+  * &lt;script type="text/javascript"&gt;
+	*	BUI.use(['bui/toolbar'],function(Toolbar){
+	*		var bar = new Toolbar.Bar({
+	*			render: '#bar',
+	*			elCls: 'toolbar',
+	*			height: 90,
+	*			elStyle: {'background-color':'blue'},
+	*			children: [
+	*				{
+	*					xtype: 'img',
+	*					imgPath: 'D:/server/nginx-1.16.0/html/img/data.png',
+	*					text: '\u6570\u636e\u7f51\u8d44\u6e90\u7ba1\u7406',
+	*					imgHeight: '50px',
+	*					textHeight: '20px',
+	*				},
+	*				{
+	*					xtype: 'img',
+	*					imgPath: 'D:/server/nginx-1.16.0/html/img/sim.png',
+	*					text: 'SIM\u5361\u7ba1\u7406',
+	*					imgHeight: '50px',
+	*					textHeight: '20px',
+	*				},
+	*				{
+	*					xtype: 'img',
+	*					imgPath: 'D:/server/nginx-1.16.0/html/img/trans.png',
+	*					text: '\u4f20\u8f93\u8d44\u6e90\u7ba1\u7406',
+	*					imgHeight: '50px',
+	*					textHeight: '20px',
+	*				},
+	*			],
+	*		});
+	*		bar.render();
+	*		bar.on('imgItemClick',function(e){
+	*			var item = e.item;
+	*			// \u5c06\u6240\u6709\u56fe\u7247\u7684\u9009\u4e2d\u72b6\u6001\u53d6\u6d88\u6389
+	*			BUI.each(bar.get('children'),function(c){
+	*				c.set('checked',false);
+	*			});
+	*			// \u8bbe\u7f6e\u70b9\u51fb\u7684\u56fe\u7247\u4e3a\u9009\u4e2d\u72b6\u6001
+	*			item.set('checked',true);
+	*		});
+	*	});
+	*&lt;/script&gt;
+  * </code></pre>
+  * xclass : 'bar-item-img'
+  * @extends  BUI.Toolbar.ImgItem
+  * @class BUI.Toolbar.BarItem.Img
+  */
+  var ImgBarItem = BarItem.extend({
+    _uiSetChecked: function(value){
+      var _self = this,
+        el = _self.get('el'),
+        method = value ? 'addClass' : 'removeClass';
+        el[method](PREFIX + 'itemimg-checked');
+    },
+    _uiSetText : function(v){
+      var _self = this,
+        el = _self.get('el');
+      el.find('p').text(v);
+    },
+    bindUI: function(){
+      var _self = this,data = _self.get('data');
+      _self.on('click',function(){
+        _self.fire('imgItemClick',{item:_self,data:data});
+      });
+    },
+  },{
+    ATTRS:
+    {
+      /**
+       * \u662f\u5426\u9009\u4e2d\uff0c\u9ed8\u8ba4\u4e3afalse
+       * @type {Boolean}
+       */
+      checked : {
+        value :false
+      },
+      /**
+       * \u6a21\u677f
+       * @cfg {String} tpl
+       */
+      tpl : {
+        view : true,
+        value : '<div><img src="{imgPath}" style="height:{imgHeight}"/></div>'
+          +'<div style="line-height:1;"><p style="margin:5px;font-weight:bold;overflow:hidden;height:{textHeight}">{text}</p></div>'
+      },
+      elStyle: {
+        value: {'text-align':'center','line-height':'50%','margin':'5px','padding-top':'8px','cursor':'pointer'}
+      },
+      /**
+       * \u56fe\u7247\u7684\u9ad8\u5ea6\uff0c\u683c\u5f0f\u4e3a'50px'\uff0c\u4e0d\u80fd\u4e3a\u7a7a
+       * @cfg {String} imgHeight
+       */
+      imgHeight:{
+      },
+      /**
+       * \u6587\u5b57\u7684\u9ad8\u5ea6\uff0c\u683c\u5f0f\u4e3a'30px'\uff0c\u4e0d\u80fd\u4e3a\u7a7a
+       * @cfg {String} textHeight
+       */
+      textHeight:{
+      },
+      /**
+       * \u56fe\u7247\u7684\u8def\u5f84\uff0c\u4e0d\u80fd\u4e3a\u7a7a
+       * @cfg {String} imgPath
+       */
+      imgPath:{
+      },
+      /**
+       * \u672c\u5b50\u9879\u5bf9\u5e94\u7684\u4e1a\u52a1\u6570\u636e\uff0c\u53ef\u4ee5\u4e3a\u7a7a
+       * @cfg {Object} data
+       */
+      data:{
+      },
+      /**
+      * \u56fe\u7247\u4e0b\u6587\u5b57\u7684\u5185\u5bb9\uff0c\u4e0d\u80fd\u4e3a\u7a7a
+      * @cfg {String} text
+      */
+      /**
+      * \u56fe\u7247\u4e0b\u6587\u5b57\u7684\u5185\u5bb9\uff0c\u4e0d\u80fd\u4e3a\u7a7a
+      * @type {String} 
+      */
+      text : {
+      },
+			events : {
+				value :{
+				  /**\u70b9\u51fb\u56fe\u6807\uff0c\u83b7\u53d6\u5bf9\u5e94\u7684\u4e1a\u52a1\u6570\u636e\uff0c\u5e76\u629b\u51fa\u6b64\u4e8b\u4ef6
+		      * @event
+		      * @name BUI.toolbar.ImgBarItem#imgItemClick
+		      * @param {Object} e.item \u70b9\u51fb\u7684\u56fe\u6807\u5bf9\u8c61
+		      * @param {Object} e.data \u5bf9\u5e94\u7684\u4e1a\u52a1\u6570\u636e
+		      */
+          imgItemClick : true,
+				}
+			}
+
+    }
+  },{
+    xclass : 'bar-item-img',
+    priority : 2  
+  });
 
   BarItem.types = {
     'button' : ButtonBarItem,
     'separator' : SeparatorBarItem,
     'spacer' : SpacerBarItem,
-    'text'  : TextBarItem
+    'text'  : TextBarItem,
+    'img' : ImgBarItem,
   };
   
 
@@ -28001,8 +28149,9 @@ define('bui/toolbar/steps', [
             xclass: 'steps-view'
         });
     /**
-     * \u6b65\u9aa4\u6761
-     * xclass : 'steps'
+     * \u6b65\u9aa4\u6761  
+     * **\u4f7f\u7528\u4e86flex\u5e03\u5c40,\u4f4e\u7248\u672c\u6d4f\u89c8\u5668\u8c28\u614e\u4f7f\u7528**  
+     * xclass : 'steps'  
      * ## \u9759\u6001\u5c55\u793a\uff0c\u53ea\u5728item\u4e2d\u8bbe\u7f6e\u72b6\u6001
      * \u6bcf\u4e2aitem\u8bbe\u7f6e\u4e0d\u540c\u7684\u72b6\u6001\u8fdb\u884c\u5c55\u793a
      *{@img step-demo1.png demo1}
@@ -28129,8 +28278,8 @@ define('bui/toolbar/steps', [
             }
         },
         /**
-         * \u4fee\u6539current\uff0c\u91cd\u65b0\u6e32\u67d3\u6b65\u9aa4\u6761
-         * @param {number} \u5f53\u524d\u6b65\u9aa4 
+         * \u9009\u4e2ditem\u53bb\u4fee\u6539current\uff0c\u91cd\u65b0\u6e32\u67d3\u6b65\u9aa4\u6761
+         * @param {item} \u5f53\u524d\u6b65\u9aa4 
          */
         setCurrent: function (item) {
             var _self = this, current = -1;
@@ -28141,6 +28290,32 @@ define('bui/toolbar/steps', [
             });
             if (current > 0) {
                 _self.set('current', current);
+                _self.set('items', _self._formatItems());
+                _self.get('items').forEach(function (item) {
+                    _self.updateItem(item)
+                });
+            }
+        },
+        /**
+         * \u4e0b\u4e00\u6b65
+         */
+        nextCurrent: function(){
+            var _self = this,current = _self.get('current');
+            if(current+1<=_self.get("items").length){
+                _self.set('current', current+1);
+                _self.set('items', _self._formatItems());
+                _self.get('items').forEach(function (item) {
+                    _self.updateItem(item)
+                });
+            }
+        },
+         /**
+         * \u4e0a\u4e00\u6b65
+         */
+        prevCurrent: function(){
+            var _self = this,current = _self.get('current');
+            if(current-1>0){
+                _self.set('current', current-1);
                 _self.set('items', _self._formatItems());
                 _self.get('items').forEach(function (item) {
                     _self.updateItem(item)
@@ -29313,26 +29488,39 @@ define('bui/toolbar/portalItem',['bui/common', 'bui/list', 'bui/toolbar/image', 
 		renderUI : function() {
 			var _self = this,imgContainer=_self.getChild('imgContainer', true),labelContainer=_self.getChild('labelContainer', true),
 			portal_image = _self.getChild('portal_image', true);
+			//\u5c06\u6570\u636e\u4e2d\u8bbe\u5b9a\u7684\u6837\u5f0f\u4e0e\u672c\u8eab\u6837\u5f0f\u8fdb\u884c\u7ed1\u5b9a
+			if(_self.get('item').elStyle != undefined){
+				_self.set('elStyle', _self.get('item').elStyle);
+				_self.set('width',  _self.get('item').elStyle.width);
+				_self.set('height', _self.get('item').elStyle.height);
+			}
+			if(_self.get('item').width != undefined){
+				_self.set('width', _self.get('item').width);
+			}
+			if(_self.get('item').height != undefined){
+				_self.set('height', _self.get('item').height);
+			}			
+			
 			if(imgContainer && labelContainer){
-				//\u8ba1\u7b97\u56fe\u7247\u7684\u9ad8\u5ea6\u548c\u6587\u5b57\u7684\u9ad8\u5ea6
-				imgContainer.set('height', _self.get('height')/3*2);
+				//\u8ba1\u7b97\u56fe\u7247\u7684\u9ad8\u5ea6\u548c\u6587\u5b57\u7684\u9ad8\u5ea6				
+				imgContainer.set('height', parseFloat(_self.get('height'))/3*2);
 				labelContainer.set('height', _self.get('height') - imgContainer.get('height'));
 				portal_image.set('height', imgContainer.get('height'));
+				portal_image.set('width', imgContainer.get('width'));
 				_self._redefineDisplay(imgContainer);
 				_self._redefineDisplay(labelContainer);
 			} else if(imgContainer) {
 				//\u56fe\u7247\u5bb9\u5668\u9ad8\u5ea6\u4e0e\u4e3b\u5bb9\u5668\u9ad8\u5ea6\u4e00\u81f4
 				imgContainer.set('height', _self.get('height'));
+				portal_image.set('height', imgContainer.get('height'));
+				portal_image.set('width', imgContainer.get('width'));
 				_self._redefineDisplay(imgContainer);
 			} else {
 				//\u6587\u5b57\u5bb9\u5668\u9ad8\u5ea6\u4e0e\u4e3b\u5bb9\u5668\u9ad8\u5ea6\u4e00\u81f4
 				labelContainer.set('height',_self.get('height'));
 				_self._redefineDisplay(labelContainer);
 			}
-			//\u5c06\u6570\u636e\u4e2d\u8bbe\u5b9a\u7684\u6837\u5f0f\u4e0e\u672c\u8eab\u6837\u5f0f\u8fdb\u884c\u7ed1\u5b9a
-			if(_self.get('item').elStyle != undefined){
-				_self.set('elStyle', _self.get('item').elStyle);
-			}
+			
 		},		
 		/**
 		 * \u91cd\u5b9a\u4e49\u5bb9\u5668\u4e3aflex\u5e03\u5c40\uff0c\u5e76\u5c45\u4e2d\u663e\u793a
@@ -29423,7 +29611,7 @@ define('bui/toolbar/portalItem',['bui/common', 'bui/list', 'bui/toolbar/image', 
              *   });
              *  </code></pre>
              */
-			elStyle : {value : {}},
+			elStyle : {value : {width:100,height:100}},
 			/**
              * \u63a7\u4ef6\u6839\u8282\u70b9\u5e94\u7528\u7684\u6837\u5f0f
              * <pre><code>
