@@ -725,40 +725,6 @@
 .bui-message .bui-message-content p {
   font-weight: normal;
 }
-.messageBox {
-  position: absolute;
-  /*这里一定要设置*/
-
-  top: 4px;
-  z-index: 1080;
-  /*这里是该元素与显示屏的距离，据说越大越好，因为没有它也是可以的*/
-
-  margin-left: 42%;
-  max-width: 20%;
-  min-width: 12%;
-}
-.messageBox .bui-list-item {
-  padding-top: 17px;
-}
-.MessageList {
-  text-align: center;
-  -webkit-transition: 0.5s ease-in-out;
-  /* css的transition允许css的属性值在一定的时间内从一个状态平滑的过渡到另一个状态 */
-
-  -moz-transition: 0.5s ease-in-out;
-  /*这里为了兼容其他浏览器*/
-
-  -o-transition: 0.5s ease-in-out;
-  padding-top: 7px;
-  padding-left: 10px;
-  padding-bottom: 6px;
-  padding-right: 15px;
-  box-shadow: -3px 3px 10px 5px #e9ebf7;
-  border-color: white;
-  background-color: white;
-  max-height: 266px;
-  overflow-y: auto;
-}
 .image-pbar button,
 .bui-grid .bui-pagingbar button,
 .image-pbar .bui-bar-item-button,
@@ -2492,47 +2458,6 @@ input.x-datepicker-time {
 }
 .x-slider-vertical .x-slider-back {
   width: 100%;
-}
-.transfer .left {
-  background-image: url(../img/transfer-icon/left.png);
-  background-repeat: no-repeat;
-  background-position: center;
-}
-.transfer .left-double {
-  background-image: url(../img/transfer-icon/left-double.png);
-  background-repeat: no-repeat;
-  background-position: center;
-}
-.transfer .right {
-  background-image: url(../img/transfer-icon/right.png);
-  background-repeat: no-repeat;
-  background-position: center;
-}
-.transfer .right-double {
-  background-image: url(../img/transfer-icon/right-double.png);
-  background-repeat: no-repeat;
-  background-position: center;
-}
-.simpletransfer li {
-  border-bottom: 1px dashed slategray;
-  /* li奇数行背景色*/
-
-  /* li偶数行背景色*/
-
-  /* li行高亮背景色*/
-
-}
-.simpletransfer li:nth-child(odd) {
-  color: #333;
-  background: white;
-}
-.simpletransfer li:nth-child(even) {
-  color: #333;
-  background: aliceblue;
-}
-.simpletransfer li:hover {
-  color: white;
-  background: lightskyblue;
 }
 .pull-right {
   float: right;
